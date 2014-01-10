@@ -79,47 +79,18 @@ end
 %% Difference the Choleski Factor of the Covariance Matrix %%%%%%%%%%%%%%%%
  
 S_j         = zeros( n.maxChoice - 1, n.maxChoice - 1, n.maxChoice );                
-S_j_old     = S_j;
-
-if max( abs( S_j_old(:) ) ) == 0            
-    save S_j_old_save S_j_old
-else
-    load S_j_old_save S_j_old
-end
 
 for j = 1 : n.maxChoice
-    checkPD                 = zeros( n.maxChoice, 1 ); 
-    % Omega_j = Cov matrix with alternative j as base
-    Omega_j                 = ( dataR.M( :, :, j, base ) * S ) * ...
-                              ( dataR.M( :, :, j, base ) * S )';
-    % Calculate the Choleski Factor of Omega_j and check whether the 
-    %   Omega_j is positive definite                      
-    [ temp, checkPD(j) ]    = chol( Omega_j, 'lower' );        
-    if checkPD(j) == 0
-        S_j( :, :, j )      = temp;
-    else
-        fprintf('\t!!! Omega_%1i is not positive definite !!!\n', j);
-    end                
+    MS = dataR.M(:,:,j,base) * S;
+    S_j(:,:,j) = chol(MS*MS', 'lower');        
 end
-clear temp
-
-if max( checkPD ) == 0
-    % Save S_j to file if Omega_j is positive definite
-    S_j_old     = S_j;        
-    save S_j_old_save S_j_old
-else
-    % Revert to a positive definite Omega_j obatined previously
-    S_j         = S_j_old;
-end        
-
-S_i     = zeros( n.maxChoice - 1, n.maxChoice - 1, n.con );
-for i = 1 : n.con
-    S_i( :, :, i )  = S_j( :, :, dataR.choice(i) );
-end
+     
+S_i = S_j(:,:,dataR.choice);
+S_i_permuted = permute(S_i, [3 1 2]);
 
 %% Calculate Probabilities %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-a           = zeros( n.con, n.draw, n.maxChoice - 1 );    
+a           = repmat(permute(V, [2 3 1]), [1 n.draw 1]);    
 w           = zeros( n.con, n.draw, n.maxChoice - 2 );
 ub          = zeros( n.con, n.draw, n.maxChoice - 1 ); 
 
@@ -127,25 +98,15 @@ for j = 1 : n.maxChoice - 1
     
     if j > 1
         w(:,:,j-1) = norminv(ub(:,:,j-1) .* dataR.draw.uni(:,:,j-1));
+        w_S_i = bsxfun(@times, w(:,:,1:j-1), S_i_permuted(:,j,1:j-1));
+        a(:,:,j) = a(:,:,j) + sum(w_S_i,3);
     end
 
-    a( :, :, j )    = repmat( V( j, : )', [ 1 n.draw ] );        
-    for h = 1 : j - 1
-        a( :, :, j )    =  bsxfun( @plus, a( :, :, j ), ...
-                                   bsxfun( @times, w( :, :, h ), ...
-                                           squeeze( S_i( j, h, : ) ) ) );            
-    end
-
-    a( :, :, j )    = bsxfun( @rdivide, -a( :, :, j ), ...
-                              squeeze( S_i(  j,  j, : ) ) );
-    ub(:,:,j) = 0.5*erfc(-a(:,:,j)/sqrt(2)); % 3x faster than normcdf                  
-
-    % Modify 0 values in 'ub' to machine epsilon to avoid division 
-    %   by 0        
-    ub( ub == 0 )   = eps;
-    
+    a(:,:,j) = bsxfun(@rdivide, a(:,:,j), squeeze(-S_i(j,j,:)));
+    ub(:,:,j) = 0.5*erfc(-a(:,:,j)/sqrt(2)); % 3x faster than normcdf
 end
 
+ub(ub==0) = eps;
 probChosen = prod(ub,3);
 
 if nargout == 1

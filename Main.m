@@ -1,5 +1,5 @@
 
-clear all;
+% clear all;
 
 %% Model Specification %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
