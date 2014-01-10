@@ -99,9 +99,12 @@ dataR.conGroupP     = zeros( n.maxChoice, n.conGroup, n.con );
 dataR.prodChar     	= zeros( n.maxChoice, n.prodChar, n.con );
 dataR.conChar       = zeros( n.maxChoice, n.conChar, n.con );
 
+unique_conID = sort(unique(data.conID));
+assert(numel(unique_conID) == n.con);
+
 for i = 1 : n.con
     
-    index1          = ( data.conID == data.conID(i) );
+    index1          = ( data.conID == unique_conID(i) );
     
     dataR.choice(i) = unique( data.choice( index1 ) ); 
     
