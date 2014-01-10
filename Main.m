@@ -5,7 +5,7 @@ clear all;
 
 % Main data file name
 % spec.dataName   = 'Data\data_fullsample.txt';
-spec.dataName   = 'Data\data_spec1_full.txt';
+spec.dataName   = 'Data\sh_data_full.csv';
 
 % Share data file name
 spec.shareName  = 'Data\data_share_full.txt';
@@ -14,13 +14,13 @@ spec.shareName  = 'Data\data_share_full.txt';
 spec.logName    = 'Log\spec1_full_200.log';
 
 % Number of consumer groups ( R )
-n.conGroup  = 2;
+n.conGroup  = 0;
 
 % Number of product characteristic variables ( x_jl )
 n.prodChar  = 0;
 
 % Number of consumer characteristic variables ( x_i )
-n.conChar   = 6;
+n.conChar   = 1;
 
 % Allow for unobserved product heterogeneity ( xi_jl ) 
 %   0 = no
@@ -60,7 +60,7 @@ rand( 'seed', 12345 );
 %   1 = use KNITRO 
 %   2 = use MATLAB fminsearch
 %   3 = use MATLAB fmincon
-spec.solver     = 3;
+spec.solver     = 1;
 
 % Common optimization options
 opt.maxIter     = 50000;
@@ -69,7 +69,7 @@ opt.display     = 'iter';
 opt.tolFun      = 1e-8;
 opt.tolCon      = 1e-8;
 opt.tolX        = 1e-15;
-opt.gradObj     = 'on';
+opt.gradObj     = 'off';
 opt.gradConstr  = 'on';
 
 % KNITRO/fmincon specific optimization options

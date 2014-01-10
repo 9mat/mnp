@@ -126,9 +126,7 @@ ub          = zeros( n.con, n.draw, n.maxChoice - 1 );
 for j = 1 : n.maxChoice - 1        
     
     if j > 1
-        w( :, :, j - 1 )    = ...
-            norminv( bsxfun( @times, ub( :, :, j - 1 ), ...
-                             squeeze( dataR.draw.uni( j - 1, :, : ) ) ) );
+        w(:,:,j-1) = norminv(ub(:,:,j-1) .* dataR.draw.uni(:,:,j-1));
     end
 
     a( :, :, j )    = repmat( V( j, : )', [ 1 n.draw ] );        
@@ -166,8 +164,7 @@ if nargout > 1
     %   by 0  
     normpdf_w( normpdf_w == 0 ) = eps;
     
-    u_normpdf_a_w   = permute( dataR.draw.uni, [ 2 3 1 ] ) .* ...
-                      normpdf_a( :, :, 1 : end - 1 ) ./ normpdf_w; 
+    u_normpdf_a_w   = dataR.draw.uni .* normpdf_a(:,:,1:end-1) ./ normpdf_w; 
     normpdf_a_ub    = reshape( normpdf_a ./ ub, ...
                                [ 1 n.con n.draw ( n.maxChoice - 1 ) ] );
                            

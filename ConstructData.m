@@ -316,7 +316,7 @@ elseif spec.drawType == 2
     dataR.draw.uni  = net( tempDraw, n.draw );
     dataR.draw.uni  = reshape( dataR.draw.uni, ...
                         [ ( n.maxChoice - 2 ) n.con n.draw ] );
-    
+    dataR.draw.uni  = permute(dataR.draw.uni, [2 3 1]);    
 end
 
 
