@@ -142,7 +142,7 @@ for j = 1 : n.maxChoice - 1
     a( :, :, j )    = bsxfun( @rdivide, -a( :, :, j ), ...
                               squeeze( S_i(  j,  j, : ) ) );
 
-    ub( :, :, j )   = normcdf( a( :, :, j ) );                   
+    ub(:,:,j) = 0.5*erfc(-a(:,:,j)/sqrt(2)); % 3x faster than normcdf                  
     probChosen      = probChosen .* ub( :, :, j );
 
     % Modify 0 values in 'ub' to machine epsilon to avoid division 
