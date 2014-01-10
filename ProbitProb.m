@@ -119,7 +119,6 @@ end
 
 %% Calculate Probabilities %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-probChosen  = ones( n.con, n.draw );
 a           = zeros( n.con, n.draw, n.maxChoice - 1 );    
 w           = zeros( n.con, n.draw, n.maxChoice - 2 );
 ub          = zeros( n.con, n.draw, n.maxChoice - 1 ); 
@@ -141,15 +140,15 @@ for j = 1 : n.maxChoice - 1
 
     a( :, :, j )    = bsxfun( @rdivide, -a( :, :, j ), ...
                               squeeze( S_i(  j,  j, : ) ) );
-
     ub(:,:,j) = 0.5*erfc(-a(:,:,j)/sqrt(2)); % 3x faster than normcdf                  
-    probChosen      = probChosen .* ub( :, :, j );
 
     % Modify 0 values in 'ub' to machine epsilon to avoid division 
     %   by 0        
     ub( ub == 0 )   = eps;
     
 end
+
+probChosen = prod(ub,3);
 
 if nargout == 1
     probChosen 	= mean( probChosen, 2 );  
