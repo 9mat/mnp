@@ -13,14 +13,42 @@ shareMatrix     = tempData.data;
 shareHeader     = tempData.colheaders;
 clear tempData
 
+%% Seperate data according to different choice sets 
+
+conID = dataMatrix( :, 2 );
+choice = dataMatrix( :, 5 );
+
+uniqueconID = sort(unique(conID));
+assert(numel(uniqueconID) == n.con);
+
+choiceset = false(n.maxChoice, n.con);
+choicesetcode = zeros(n.con);
+choicesetcodedata = zeros(size(data.price,1), 1);
+
+for i = 1:n.con
+    index1 = (data.conID == uniqueconID(i));
+    choiceset(alternative(index1)) = true;
+    choicesetcode(i) = (2.^(0:n.maxChoice-1))*data.choiceset(:,i);
+    choicesetcodedata(index1) = choicesetcode(i);
+end
+
+[uniquecode, indexcode] = unique(choicesetcode);
+n.choiceset = numel(uniquecode);
+
+for k = 1:n.choiceset
+    belong = choicesetcodedata == uniquecode(k);
+    
+    data.marketID       = dataMatrixS(belong, 1 );
+    data.conID          = dataMatrix(belong, 2 );   
+    data.choiceSetSize  = dataMatrix(belong, 3 );
+    data.alternative    = dataMatrix(belong, 4 );
+    data.choice         = dataMatrix(belong, 5 );
+    data.price          = dataMatrix(belong, 6 );
+ 
+end
+
 %% Construct Data Matrices %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-data.marketID       = dataMatrix( :, 1 );
-data.conID          = dataMatrix( :, 2 );
-data.choiceSetSize  = dataMatrix( :, 3 );
-data.alternative    = dataMatrix( :, 4 );
-data.choice         = dataMatrix( :, 5 );
-data.price          = dataMatrix( :, 6 );
 
 % Matrix of consumer group indicators ( i in r )
 temp            = 6;
@@ -83,6 +111,7 @@ end
 clear temp
 
 dataR.sIndex    = [ false; true( n.s, 1 ) ];
+
 
 %% Reshape Data Matrices %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
