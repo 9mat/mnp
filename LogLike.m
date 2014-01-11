@@ -19,7 +19,8 @@ elseif nargout > 1
         [ probChosen, d_probChosen ]    = ProbitProb( theta, dataR(1), n, spec );
         probChosen( probChosen == 0 )   = eps;
         nLogLike    = nLogLike-sum( log( probChosen ) );
-        d_nLogLike  = d_nLogLike-sum( bsxfun( @rdivide, d_probChosen, probChosen' ), 2 );
+        d_nLogLike(dataR.pick)  = d_nLogLike(dataR.pick) ...
+            - sum( bsxfun( @rdivide, d_probChosen, probChosen' ), 2 );
     end
     
 end

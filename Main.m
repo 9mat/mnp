@@ -69,7 +69,7 @@ opt.display     = 'iter';
 opt.tolFun      = 1e-8;
 opt.tolCon      = 1e-8;
 opt.tolX        = 1e-15;
-opt.gradObj     = 'off';
+opt.gradObj     = 'on';
 opt.gradConstr  = 'on';
 
 % KNITRO/fmincon specific optimization options
