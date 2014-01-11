@@ -1,5 +1,5 @@
 
-function [dataR] = ConstructDataGroup(dataMatrix, n, spec)
+function [dataR, data] = ConstructDataGroup(dataMatrix, n, spec)
 
 % check that data is balanced
 alternative = dataMatrix(:, 4);
@@ -7,6 +7,7 @@ count = histc(alternative, unique(alternative));
 assert(all(count(2:end)==count(1)));
 
 % sort data by alternative
+% !!!important for later reshaping
 [~, sortindex] = sort(alternative);
 dataMatrix = dataMatrix(sortindex,:);
 
@@ -298,6 +299,9 @@ elseif spec.drawType == 2
                         [ ( n.maxChoice - 2 ) n.con n.draw ] );
     dataR.draw.uni  = permute(dataR.draw.uni, [2 3 1]);    
 end
+
+dataR.n = n;
+dataR.choiceset = unique(data.alternative);
 
 
         

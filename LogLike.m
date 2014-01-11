@@ -1,8 +1,10 @@
-function [ nLogLike, d_nLogLike ] = LogLike( theta, dataR, n, spec )
+function [ nLogLike, d_nLogLike ] = LogLike( theta, dataR, spec )
+
+n = dataR.n;
 
 if nargout == 1
     
-    probChosen  = ProbitProb( theta, dataR, n, spec );
+    probChosen  = ProbitProb( theta, dataR(1), n, spec );
     
     % Modify 0 values in 'probChosen' to machine epsilon to avoid log( 0 )
     %   or division by 0  
@@ -12,7 +14,7 @@ if nargout == 1
 
 elseif nargout > 1
    
-    [ probChosen, d_probChosen ]    = ProbitProb( theta, dataR, n, spec );
+    [ probChosen, d_probChosen ]    = ProbitProb( theta, dataR(1), n, spec );
     
     % Modify 0 values in 'probChosen' to machine epsilon to avoid log( 0 )
     %   or division by 0        

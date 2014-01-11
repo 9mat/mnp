@@ -6,7 +6,7 @@ ub  = ones( n.theta, 1 ) * 200;
 lb  = ones( n.theta, 1 ) * -200;
 
 % Define objective function
-obj = @(x) LogLike( x, dataR, n, spec );
+obj = @(x) LogLike( x, dataR, spec );
 
 % Run Optimization
 tic

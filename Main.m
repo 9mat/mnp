@@ -84,6 +84,7 @@ ConstructData;
 % diary( spec.logName );
 
 % Start value
+n = dataR(1).n;
 theta_0                         = ones( n.theta, 1 );
 theta_0(1)                      = -10;
 theta_0( n.beta + 1 : n.theta ) = theta_0( n.beta + 1 : n.theta ) + ...
