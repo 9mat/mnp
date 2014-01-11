@@ -105,6 +105,7 @@ assert(numel(unique_conID) == n.con);
 for i = 1 : n.con
     
     index1          = ( data.conID == unique_conID(i) );
+    index2          = data.alternative(index1);
     
     dataR.choice(i) = unique( data.choice( index1 ) ); 
     
@@ -112,22 +113,22 @@ for i = 1 : n.con
         
         % For consumer with data.choiceSetSize == n.maxChoice
         
-        dataR.price( :, :, i )          = data.price( index1, : );
-        dataR.alternative( :, :, i )    = data.alternative( index1, : );
+        dataR.price( index2, :, i )          = data.price( index1, : );
+        dataR.alternative( index2, :, i )    = data.alternative( index1, : );
 
         if n.conGroup > 0
-            dataR.conGroup( :, :, i )   = data.conGroup( index1, : );
-            dataR.conGroupP( :, :, i )  = bsxfun( @times, ...
+            dataR.conGroup( index2, :, i )   = data.conGroup( index1, : );
+            dataR.conGroupP( index2, :, i )  = bsxfun( @times, ...
                                             data.conGroup( index1, : ), ...
                                             data.price( index1, : ) );
         end
 
         if n.prodChar > 0
-            dataR.prodChar( :, :, i )   = data.prodChar( index1, : );
+            dataR.prodChar( index2, :, i )   = data.prodChar( index1, : );
         end
 
         if n.conChar > 0
-            dataR.conChar( :, :, i )    = data.conChar( index1, : );
+            dataR.conChar( index2, :, i )    = data.conChar( index1, : );
         end
         
     else
