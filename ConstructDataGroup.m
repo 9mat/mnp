@@ -1,19 +1,14 @@
 
-%% Import Data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [dataR] = ConstructDataGroup(dataMatrix, n, spec)
 
-% Main Data
-tempData        = importdata( spec.dataName );
-dataMatrix      = tempData.data;
-dataHeader      = tempData.colheaders;
-clear tempData
+% check that data is balanced
+alternative = dataMatrix(:, 4);
+count = histc(alternative, unique(alternative));
+assert(all(count(2:end)==count(1)));
 
-% Share Data
-tempData        = importdata( spec.shareName );
-shareMatrix     = tempData.data;
-shareHeader     = tempData.colheaders;
-clear tempData
-
-%% Construct Data Matrices %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% sort data by alternative
+[~, sortindex] = sort(alternative);
+dataMatrix = dataMatrix(sortindex,:);
 
 data.marketID       = dataMatrix( :, 1 );
 data.conID          = dataMatrix( :, 2 );
@@ -21,6 +16,7 @@ data.choiceSetSize  = dataMatrix( :, 3 );
 data.alternative    = dataMatrix( :, 4 );
 data.choice         = dataMatrix( :, 5 );
 data.price          = dataMatrix( :, 6 );
+
 
 % Matrix of consumer group indicators ( i in r )
 temp            = 6;
@@ -232,7 +228,6 @@ if n.conChar > 0
                 zeros( n.maxChoice - 1, n.conChar * n.maxChoice, n.con );
 end
             
-temp    = zeros( n.prodChar * n.maxChoice, n.maxChoice - 1, n.con );
 for i = 1 : n.con        
     if ( 1 - spec.unobs ) > 0
         dataR.diff.price( :, :, i )     = ...
