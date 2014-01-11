@@ -4,7 +4,7 @@ function [ probChosen, d_probChosen ] = ProbitProb( theta, dataR, n, spec )
 % theta = [ theta; 2; 3; 4; 5; 6;];
 % theta = [ theta(1:end-2); theta(end-1); theta(end); 7; 4; 1;];
 params 	= ConstructParams( theta, n, spec );
-base    = spec.base;
+base    = dataR.base;
 
 % Common price parameter ( alpha_0 )
 %   alpha_0 is [ 1 x 1 ]
@@ -31,7 +31,7 @@ if n.conChar > 0
 end
 
 % Choleski factor of the ( differenced ) covariance matrix 
-%   - the base alternative is spec.base 
+%   - the base alternative is dataR.base 
 %   - S is a lower-triangular matrix
 %   - S is [ n.maxChoice x n.maxChoice ]
 S	= params.S;
@@ -43,7 +43,7 @@ V   = zeros( n.maxChoice - 1, n.con );
 if ( 1 - spec.unobs ) > 0
     %   alpha_0 is [ 1 x 1 ]
     %   dataR.diff.price  is [ n.maxChoice - 1 x 1 x n.con ]
-    V   = V + squeeze( alpha_0 .* dataR.diff.price );
+    V   = V + alpha_0 * permute(dataR.diff.price, [1 3 2]);
 end
 
 if n.conGroup > 0 
@@ -51,7 +51,7 @@ if n.conGroup > 0
     %   dataR.diff.conGroupP is [ 1 x n.conGroup x n.con ]
     temp    = bsxfun( @times, alpha_r, dataR.diff.conGroupP );   
 
-    V       = V + squeeze( sum( temp, 2 ) );
+    V       = V + permute(sum( temp, 2 ), [1 3 2] );
     clear temp
 end
        
@@ -61,7 +61,7 @@ if ( 1 - spec.unobs ) * n.prodChar > 0
     beta_1  = reshape( beta_1, [ 1 (n.maxChoice * n.prodChar) 1 ] );
     temp    = bsxfun( @times, beta_1, dataR.diff.prodChar );
 
-    V       = V + squeeze( sum( temp, 2 ) );
+    V       = V + permute( sum( temp, 2 ), [1 3 2] );
     clear temp
 end
 
@@ -71,7 +71,7 @@ if n.conChar > 0
     beta_2  = reshape( beta_2, [ 1 (n.maxChoice * n.conChar) 1 ] );
     temp    = bsxfun( @times, beta_2, dataR.diff.conChar );
 
-    V       = V + squeeze( sum( temp, 2 ) );
+    V       = V + permute( sum( temp, 2 ), [1 3 2] );
     clear temp
 end
 

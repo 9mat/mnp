@@ -6,11 +6,8 @@ dataMatrix      = tempData.data;
 dataHeader      = tempData.colheaders;
 clear tempData
 
-% Share Data
-tempData        = importdata( spec.shareName );
-shareMatrix     = tempData.data;
-shareHeader     = tempData.colheaders;
-clear tempData
+% remove data with only 1 alternative
+dataMatrix(dataMatrix(:,3) < 2, :) = [];
 
 %% Separate data according to choice sets
 
@@ -27,7 +24,7 @@ for i = 1:n.con
     index1 = (conID == uniqueID(i));
     choiceset = false(1, n.maxChoice);
     choiceset(alternative(index1)) = true;
-    choicesetcode(index1) = bi2de(choiceset');
+    choicesetcode(index1) = bi2de(choiceset);
 end
 
 uniquecode = unique(choicesetcode);

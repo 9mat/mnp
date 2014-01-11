@@ -3,8 +3,11 @@ function [dataR, data] = ConstructDataGroup(dataMatrix, n, spec)
 
 % check that data is balanced
 alternative = dataMatrix(:, 4);
-count = histc(alternative, unique(alternative));
+allchoices = unique(alternative);
+count = histc(alternative, allchoices);
 assert(all(count(2:end)==count(1)));
+
+dataR.missingscale = ~any(allchoices == spec.scale);
 
 % sort data by alternative
 % !!!important for later reshaping
@@ -18,6 +21,20 @@ data.alternative    = dataMatrix( :, 4 );
 data.choice         = dataMatrix( :, 5 );
 data.price          = dataMatrix( :, 6 );
 
+% recode choices and alternatives
+for i = 1:numel(allchoices)
+    % use negative sign to differentiate old and new codes
+    data.alternative(data.alternative == allchoices(i)) = -i;
+    data.choice(data.choice == allchoices(i)) = -i;
+    
+    if allchoices(i) == spec.base
+        dataR.base = i;
+    end
+end
+
+
+data.alternative = - data.alternative;
+data.choice = - data.choice;
 
 % Matrix of consumer group indicators ( i in r )
 temp            = 6;
@@ -70,7 +87,7 @@ if n.conChar > 0
     dataR.betaIndex     = true( n.beta_all, 1 );
     temp                = n.beta - n.conChar * ( n.maxChoice - 1 );
     for k = 1 : n.conChar
-        dataR.betaIndex( temp + spec.base )  = 0;
+        dataR.betaIndex( temp + dataR.base )  = 0;
            
         temp     = temp + ( n.maxChoice );  
     end
@@ -78,8 +95,11 @@ else
     dataR.betaIndex     = true( n.beta, 1 );
 end
 clear temp
-
+    
 dataR.sIndex    = [ false; true( n.s, 1 ) ];
+if dataR.missingscale
+    dataR.sIndex(1) = true;
+end
 
 %% Reshape Data Matrices %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -286,7 +306,7 @@ if spec.drawType == 1
     % Make uniform draws
     dataR.draw.uni  = rand( n.maxChoice - 2, n.con, n.draw );
     
-elseif spec.drawType == 2
+elseif spec.drawType == 2 && n.maxChoice > 2
     
     tempDraw        = haltonset( ( n.maxChoice - 2 ) * n.con, ...
                                  'Skip', spec.halton.skip, ...
@@ -297,7 +317,10 @@ elseif spec.drawType == 2
     dataR.draw.uni  = net( tempDraw, n.draw );
     dataR.draw.uni  = reshape( dataR.draw.uni, ...
                         [ ( n.maxChoice - 2 ) n.con n.draw ] );
-    dataR.draw.uni  = permute(dataR.draw.uni, [2 3 1]);    
+    dataR.draw.uni  = permute(dataR.draw.uni, [2 3 1]);  
+    
+elseif n.maxChoice == 2
+    dataR.draw.uni = zeros(n.con, n.draw, 0);
 end
 
 dataR.n = n;

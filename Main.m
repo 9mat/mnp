@@ -5,7 +5,8 @@
 
 % Main data file name
 % spec.dataName   = 'Data\data_fullsample.txt';
-spec.dataName   = 'Data\sh_data_full.csv';
+% spec.dataName   = 'Data\sh_data_full.csv';
+spec.dataName   = 'Data\data_salvo_huse_mnp.csv';
 
 % Share data file name
 spec.shareName  = 'Data\data_share_full.txt';
@@ -39,6 +40,7 @@ spec.boundSize  = 1e-6;
 
 % Base alternative
 spec.base       = 1;
+spec.scale      = 1 + (spec.base == 1); % not ready to change to other scale yet
 
 % Number of random draws 
 n.draw          = 100;
@@ -84,11 +86,11 @@ ConstructData;
 % diary( spec.logName );
 
 % Start value
-n = dataR(1).n;
-theta_0                         = ones( n.theta, 1 );
+n.maxChoice = max(dataMatrix(:,4));
+n.theta = 1 + n.conGroup + (n.maxChoice-1)*(n.prodChar + n.conChar) + (n.maxChoice - 1)*n.maxChoice/2 - 1;
+theta_0                         = ones(n.theta, 1 );
 theta_0(1)                      = -10;
-theta_0( n.beta + 1 : n.theta ) = theta_0( n.beta + 1 : n.theta ) + ...
-                                  linspace( 2, n.s + 1, n.s )';
+
 % Run estimation
 RunEstimation;
 

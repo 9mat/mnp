@@ -46,18 +46,12 @@ end
 %   - S is a lower-triangular matrix
 %   - S is [ n.maxChoice x n.maxChoice ]
 temp        = temp + n.conChar * ( n.maxChoice - 1 );
-params.S    = eye( n.maxChoice - 1, n.maxChoice - 1 );
-for j = 1 : n.maxChoice - 1 
-    if j == 1
-        params.S( 2 : n.maxChoice - 1, j )	= ...
-                                theta( temp + 1 : temp + n.maxChoice - 2 );
-        temp    = temp + n.maxChoice - 2;
-    else
-        params.S( j : n.maxChoice - 1, j )  = ...
-                                theta( temp + 1 : temp + n.maxChoice - j );
-        
-        temp    = temp + n.maxChoice - j;                            
-    end
+
+mask.S = tril(true(n.maxChoice - 1));
+if numel(theta) - temp < sum(mask.S(:))
+    mask.S(1,1) = false;
 end
+params.S = eye( n.maxChoice - 1, n.maxChoice - 1 );
+params.S(mask.S) = theta(temp+1:end);
 
 clear temp
