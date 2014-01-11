@@ -95,47 +95,31 @@ dataR.conGroupP     = zeros( n.maxChoice, n.conGroup, n.con );
 dataR.prodChar     	= zeros( n.maxChoice, n.prodChar, n.con );
 dataR.conChar       = zeros( n.maxChoice, n.conChar, n.con );
 
-unique_conID = sort(unique(data.conID));
-assert(numel(unique_conID) == n.con);
-
 for i = 1 : n.con
     
-    index1          = ( data.conID == unique_conID(i) );
-    index2          = data.alternative(index1);
+    % NOTE: this reshaping depends crucial on the sorting in the beginning,
+    % i.e. data must be sorted by alternative first
+    index1          = ( data.conID == data.conID(i) );
     
-    dataR.choice(i) = unique( data.choice( index1 ) ); 
+    dataR.choice(i) = unique( data.choice( index1 ) );
+        
+    dataR.price( :, :, i )          = data.price( index1, : );
+    dataR.alternative( :, :, i )    = data.alternative( index1, : );
     
-    if sum( index1 ) == n.maxChoice 
-        
-        % For consumer with data.choiceSetSize == n.maxChoice
-        
-        dataR.price( index2, :, i )          = data.price( index1, : );
-        dataR.alternative( index2, :, i )    = data.alternative( index1, : );
-
-        if n.conGroup > 0
-            dataR.conGroup( index2, :, i )   = data.conGroup( index1, : );
-            dataR.conGroupP( index2, :, i )  = bsxfun( @times, ...
-                                            data.conGroup( index1, : ), ...
-                                            data.price( index1, : ) );
-        end
-
-        if n.prodChar > 0
-            dataR.prodChar( index2, :, i )   = data.prodChar( index1, : );
-        end
-
-        if n.conChar > 0
-            dataR.conChar( index2, :, i )    = data.conChar( index1, : );
-        end
-        
-    else
-                
-        % this part of the code is incomplete        
-        % this part of the code extend the program to allow for
-        % consumers with different choice sets
-        
-    end    
-     
-    clear index1     
+    if n.conGroup > 0
+        dataR.conGroup( :, :, i )   = data.conGroup( index1, : );
+        dataR.conGroupP( :, :, i )  = bsxfun( @times, ...
+            data.conGroup( index1, : ), ...
+            data.price( index1, : ) );
+    end
+    
+    if n.prodChar > 0
+        dataR.prodChar( :, :, i )   = data.prodChar( index1, : );
+    end
+    
+    if n.conChar > 0
+        dataR.conChar( :, :, i )    = data.conChar( index1, : );
+    end
 end
 
 %% Construct Differencing Matrics %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
