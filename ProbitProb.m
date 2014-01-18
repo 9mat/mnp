@@ -102,7 +102,7 @@ for j = 1 : n.maxChoice - 1
         a(:,:,j) = a(:,:,j) + sum(w_S_i,3);
     end
 
-    a(:,:,j) = bsxfun(@rdivide, a(:,:,j), squeeze(-S_i(j,j,:)));
+    a(:,:,j) = bsxfun(@times, a(:,:,j), 1./squeeze(-S_i(j,j,:)));
     ub(:,:,j) = 0.5*erfc(-a(:,:,j)/sqrt(2)); % 3x faster than normcdf
 end
 
@@ -189,14 +189,14 @@ if nargout > 1
                                             squeeze( S_i( l, h, : ) )' );
             end            
         end
-        d_a_beta( :, :, :, l )      = bsxfun( @rdivide, ...
-                                              -d_a_beta( :, :, :, l ), ...
-                                              squeeze( S_i( l, l, : ) )' );
+        d_a_beta( :, :, :, l )      = bsxfun( @times, ...
+                                              d_a_beta( :, :, :, l ), ...
+                                              -1./squeeze(S_i( l, l, : ) )' );
     
         % Derivatives of a wrt s_i                                      
-        d_a_s_i( l, l, :, :, l ) 	= -bsxfun( @rdivide, ...
+        d_a_s_i( l, l, :, :, l ) 	= -bsxfun( @times, ...
                     reshape( a( :, :, l ), [ 1 1 n.con n.draw 1 ] ), ...
-                    reshape( S_i( l, l, : ), [ 1 1 n.con 1 1 ] ) );
+                    1./reshape( S_i( l, l, : ), [ 1 1 n.con 1 1 ] ) );
                 
         for i = 1 : n.maxChoice - 1
             for j = 1 : n.maxChoice - 1
@@ -214,9 +214,9 @@ if nargout > 1
                                                 d_a_s_i( i, j, :, :, l );
                     end
                 elseif ( i == l ) && ( i > j )
-                    d_a_s_i( i, j, :, :, l )    = -bsxfun( @rdivide, ...
+                    d_a_s_i( i, j, :, :, l )    = -bsxfun( @times, ...
                         reshape( w( :, :, j ), [ 1 1 n.con n.draw 1 ] ), ...
-                        reshape( S_i( l, l, : ), [ 1 1 n.con 1 1 ] ) );
+                        1./reshape( S_i( l, l, : ), [ 1 1 n.con 1 1 ] ) );
                 end                
             end
         end
