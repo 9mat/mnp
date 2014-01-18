@@ -82,7 +82,7 @@ S_j         = zeros( n.maxChoice - 1, n.maxChoice - 1, n.maxChoice );
 
 for j = 1 : n.maxChoice
     MS = dataR.M(:,:,j,base) * S;
-    S_j(:,:,j) = chol(MS*MS', 'lower');        
+    S_j(:,:,j) = mychol(MS*MS');
 end
      
 S_i = S_j(:,:,dataR.choice);

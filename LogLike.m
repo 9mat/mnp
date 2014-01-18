@@ -15,7 +15,7 @@ elseif nargout > 1
     
     for k = 1:numel(dataR)
         [ probChosen, d_probChosen ]    = ProbitProb( theta(dataR(k).pick), dataR(k), dataR(k).n, spec );
-        probChosen( probChosen == 0 )   = eps;
+        probChosen( abs(probChosen) < eps )   = eps;
         nLogLike    = nLogLike-sum( log( probChosen ) );
         d_nLogLike(dataR(k).pick)  = d_nLogLike(dataR(k).pick) ...
             - sum( bsxfun( @rdivide, d_probChosen, probChosen' ), 2 );

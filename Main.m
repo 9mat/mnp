@@ -5,8 +5,9 @@
 
 % Main data file name
 % spec.dataName   = 'Data\data_fullsample.txt';
-% spec.dataName   = 'Data\sh_data_full.csv';
-spec.dataName   = 'Data\data_salvo_huse_mnp.csv';
+spec.dataName   = 'Data\data_sh_20stations.csv';
+% spec.dataName   = 'Data\data_salvo_huse_mnp.csv';
+% spec.dataName   = 'Data\logit_data_salvohuse.csv';
 
 % Share data file name
 spec.shareName  = 'Data\data_share_full.txt';
@@ -21,7 +22,7 @@ n.conGroup  = 0;
 n.prodChar  = 0;
 
 % Number of consumer characteristic variables ( x_i )
-n.conChar   = 1;
+n.conChar   = 6;
 
 % Allow for unobserved product heterogeneity ( xi_jl ) 
 %   0 = no
@@ -35,7 +36,7 @@ spec.unobs  = 0;
 %   covariance remains positive definite during optimization.
 %   1 = yes
 %   2 = no
-spec.constraint = 2;
+spec.constraint = 1;
 spec.boundSize  = 1e-6;
 
 % Base alternative
@@ -43,7 +44,7 @@ spec.base       = 1;
 spec.scale      = 1 + (spec.base == 1); % not ready to change to other scale yet
 
 % Number of random draws 
-n.draw          = 100;
+n.draw          = 500;
 
 % Random draw type
 %   1 = use pseudo-random draws

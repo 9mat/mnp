@@ -324,7 +324,6 @@ elseif n.maxChoice == 2
 end
 
 dataR.n = n;
-dataR.choiceset = unique(data.alternative);
 
 
         
