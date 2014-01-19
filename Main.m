@@ -3,9 +3,12 @@
 
 %% Model Specification %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+global opt;
+
 % Main data file name
 % spec.dataName   = 'Data\data_fullsample.txt';
-spec.dataName   = 'Data\data_sh_20stations.csv';
+% spec.dataName   = 'Data\data_sh_20stations.csv';
+spec.dataName   = 'Data\data_sh_full.csv';
 % spec.dataName   = 'Data\data_salvo_huse_mnp.csv';
 % spec.dataName   = 'Data\logit_data_salvohuse.csv';
 
@@ -22,7 +25,7 @@ n.conGroup  = 0;
 n.prodChar  = 0;
 
 % Number of consumer characteristic variables ( x_i )
-n.conChar   = 6;
+n.conChar   = 1;
 
 % Allow for unobserved product heterogeneity ( xi_jl ) 
 %   0 = no
@@ -72,7 +75,7 @@ opt.display     = 'iter';
 opt.tolFun      = 1e-8;
 opt.tolCon      = 1e-8;
 opt.tolX        = 1e-15;
-opt.gradObj     = 'on';
+opt.gradObj     = 'off';
 opt.gradConstr  = 'on';
 
 % KNITRO/fmincon specific optimization options
@@ -90,7 +93,7 @@ ConstructData;
 n.maxChoice = max(dataMatrix(:,4));
 n.theta = 1 + n.conGroup + (n.maxChoice-1)*(n.prodChar + n.conChar) + (n.maxChoice - 1)*n.maxChoice/2 - 1;
 theta_0                         = ones(n.theta, 1 );
-theta_0(1)                      = -10;
+theta_0(1)                      = -20;
 
 % Run estimation
 RunEstimation;

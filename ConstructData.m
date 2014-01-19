@@ -27,12 +27,59 @@ for i = 1:n.con
     choicesetcode(index1) = bi2de(choiceset);
 end
 
+tosort = [choicesetcode, dataMatrix(:,1)];
+[~, index] = sortrows(tosort, [1 2]);
+
+dataMatrix = dataMatrix(index, :);
+choicesetcode = choicesetcode(index);
+marketID = dataMatrix(:,1);
+
+groupID = zeros(size(choicesetcode));
+count = 1;
+groupID(1) = 1;
+for i = 2:size(choicesetcode,1)
+    if choicesetcode(i) ~= choicesetcode(i-1)
+        groupID(i) = groupID(i-1) + 1;
+        count = 1;
+        continue;
+    end
+    
+    if marketID(i) ~= marketID(i-1)
+        if count >= 1
+            groupID(i) = groupID(i-1) + 1;
+            count = 1;
+            continue;
+        end    
+        count = count + 1;
+    end
+    
+    groupID(i) = groupID(i-1);
+end
+
+uniquegroup = sort(unique(groupID));
+n.group = numel(uniquegroup);
+
 uniquecode = unique(choicesetcode);
 n.choiceset = numel(uniquecode);
 
-for k = 1:n.choiceset
-    belong = choicesetcode == uniquecode(k);
-    [dataR(k), data(k)] = ConstructDataGroup(dataMatrix(belong,:),n,spec);
+uniquemarketID = sort(unique(dataMatrix(:,1)));
+n.market = numel(uniquemarketID);
+
+for k = 1:n.group
+    belong = groupID == uniquegroup(k);
+    subdataMaxtrix = dataMatrix(belong,:);
+    [dataR(k), data(k)] = ConstructDataGroup(subdataMaxtrix,n,spec);
+end
+
+for k = 1:n.group
+    belong = groupID == uniquegroup(k);
+    subdataMaxtrix = dataMatrix(belong,:);
+    choiceset = sort(unique(subdataMaxtrix(:,4)));
+    
+    for j = 1:numel(choiceset)
+        subdataMaxtrix(:,5) = choiceset(j);
+        [dataR(k).dataS(j), ~] = ConstructDataGroup(subdataMaxtrix,n,spec);
+    end
 end
 
 mask.beta_1 = ones(n.maxChoice, n.prodChar);
@@ -51,8 +98,8 @@ mask.beta_2(mask.beta_2(:) == 1) = 1:sum(mask.beta_2(:));
 mask.S(mask.S == 1) = 1:sum(mask.S(:));
 mask.S_noscale(mask.S_noscale == 1) = 1:sum(mask.S_noscale(:));
 
-for k = 1:n.choiceset
-    missing = ~de2bi(uniquecode(k));
+for k = 1:n.group
+    missing = ~de2bi(dataR(k).choicesetcode);
     
     pick.beta_1 = mask.beta_1;
     pick.beta_2 = mask.beta_2;

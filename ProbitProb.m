@@ -1,4 +1,4 @@
-function [ probChosen, d_probChosen ] = ProbitProb( theta, dataR, n, spec )
+function [ probChosen, d_probChosen ] = ProbitProb( theta, delta, dataR, n, spec )
 
 %% Construct Parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % theta = [ theta; 2; 3; 4; 5; 6;];
@@ -38,7 +38,10 @@ S	= params.S;
 
 %% Compute ( Differenced ) Deterministic Utilities %%%%%%%%%%%%%%%%%%%%%%%%
 
-V   = zeros( n.maxChoice - 1, n.con );
+V   = delta(:, dataR.marketID);
+for i = 1:n.con
+    V(:,i) = dataR.M(:,:,dataR.choice(i), base)*V(:,i);
+end
 
 if ( 1 - spec.unobs ) > 0
     %   alpha_0 is [ 1 x 1 ]

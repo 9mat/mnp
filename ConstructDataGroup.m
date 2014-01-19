@@ -9,6 +9,11 @@ assert(all(count(2:end)==count(1)));
 
 dataR.missingscale = ~any(allchoices == spec.scale);
 
+% save choiceset code
+dataR.choiceset = false(1, n.maxChoice);
+dataR.choiceset(allchoices) = true;
+dataR.choicesetcode = bi2de(dataR.choiceset);
+
 % sort data by alternative
 % !!!important for later reshaping
 [~, sortindex] = sort(alternative);
@@ -31,10 +36,15 @@ for i = 1:numel(allchoices)
         dataR.base = i;
     end
 end
-
-
 data.alternative = - data.alternative;
 data.choice = - data.choice;
+
+% recode marketID
+dataR.uniquemarketID = sort(unique(data.marketID));
+for k = 1:numel(dataR.uniquemarketID)
+    data.marketID(data.marketID == dataR.uniquemarketID(k)) = -k;    
+end
+data.marketID = -data.marketID;
 
 % Matrix of consumer group indicators ( i in r )
 temp            = 6;
@@ -104,7 +114,7 @@ end
 %% Reshape Data Matrices %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Create a data matrix "dataR" by reshaping "data"
-dataR.marketID      = zeros( n.maxChoice, 1 );
+dataR.marketID      = zeros( 1, n.con );
 dataR.conID         = zeros( n.maxChoice, 1 );
 dataR.choiceSetSize = zeros( n.maxChoice, 1 );
 dataR.alternative   = zeros( n.maxChoice, 1 );
@@ -126,6 +136,7 @@ for i = 1 : n.con
         
     dataR.price( :, :, i )          = data.price( index1, : );
     dataR.alternative( :, :, i )    = data.alternative( index1, : );
+    dataR.marketID(i)               = data.marketID(find(index1,1));
     
     if n.conGroup > 0
         dataR.conGroup( :, :, i )   = data.conGroup( index1, : );
@@ -323,7 +334,16 @@ elseif n.maxChoice == 2
     dataR.draw.uni = zeros(n.con, n.draw, 0);
 end
 
+n.market =numel(dataR.uniquemarketID);
 dataR.n = n;
 
+share = zeros(n.maxChoice, n.market);
+for k = 1:n.market
+    for j = 1:n.maxChoice
+        share(j,k) = sum(dataR.choice == j & dataR.marketID == k);
+    end
+end
+share = bsxfun(@times, share, 1./sum(share,1));
+dataR.share = share;
 
         

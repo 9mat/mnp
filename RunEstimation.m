@@ -12,6 +12,8 @@ for k = 1:n.choiceset
     end
 end
 
+delete('delta_0.mat');
+
 % Define objective function
 obj = @(x) LogLike( x, dataR, spec );
 
