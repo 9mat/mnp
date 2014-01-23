@@ -28,7 +28,7 @@ for i = 1:numel(allchoices)
     data.choice(data.choice == allchoices(i)) = -i;
     
     if allchoices(i) == spec.base
-        dataR.base = i;
+        spec.base = i;
     end
 end
 
@@ -87,7 +87,7 @@ if n.conChar > 0
     dataR.betaIndex     = true( n.beta_all, 1 );
     temp                = n.beta - n.conChar * ( n.maxChoice - 1 );
     for k = 1 : n.conChar
-        dataR.betaIndex( temp + dataR.base )  = 0;
+        dataR.betaIndex( temp + spec.base )  = 0;
            
         temp     = temp + ( n.maxChoice );  
     end
@@ -324,6 +324,7 @@ elseif n.maxChoice == 2
 end
 
 dataR.n = n;
+dataR.spec = spec;
 
 
         
