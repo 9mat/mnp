@@ -86,7 +86,8 @@ for j = 1 : n.maxChoice
 end
      
 S_i = S_j(:,:,dataR.choice);
-S_i_permuted = permute(S_i, [3 1 2]);
+S_i_permuted = permute(S_i, [3 2 1]);
+S_i_permuted(:,end,:) = [];
 
 %% Calculate Probabilities %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -95,15 +96,16 @@ w           = zeros( n.con, n.draw, n.maxChoice - 2 );
 ub          = zeros( n.con, n.draw, n.maxChoice - 1 ); 
 
 for j = 1 : n.maxChoice - 1        
-    
+    aj = repmat(permute(V(j, :), [2 3 1]), [1 n.draw]);
     if j > 1
-        w(:,:,j-1) = norminv(ub(:,:,j-1) .* dataR.draw.uni(:,:,j-1));
-        w_S_i = bsxfun(@times, w(:,:,1:j-1), S_i_permuted(:,j,1:j-1));
-        a(:,:,j) = a(:,:,j) + sum(w_S_i,3);
+        w(:,:,j-1) = norminv(ubj .* dataR.draw.uni(:,:,j-1));
+        w_S_i = bsxfun(@times, w, S_i_permuted(:,:,j));
+        aj = aj + sum(w_S_i,3);
     end
-
-    a(:,:,j) = bsxfun(@times, a(:,:,j), 1./squeeze(-S_i(j,j,:)));
-    ub(:,:,j) = 0.5*erfc(-a(:,:,j)/sqrt(2)); % 3x faster than normcdf
+    aj = bsxfun(@times, aj, -1./squeeze(S_i(j,j,:)));
+    ubj = 0.5*erfc(-aj/sqrt(2)); % 3x faster than normcdf
+    a(:,:,j) = aj;
+    ub(:,:,j) = ubj; % 3x faster than normcdf
 end
 
 ub(ub==0) = eps;
@@ -169,29 +171,23 @@ if nargout > 1
     % Derivatives of w wrt to s_i              
     d_w_s_i     = reshape( u_normpdf_a_w( :, :, : ) , ...
                            [ 1 1 n.con n.draw ( n.maxChoice - 2 ) ] );
-
+    
     for l = 1 : n.maxChoice - 1 
         
         % Derivatives of a wrt beta
-        if l == 1            
-            d_a_beta( :, :, :, l )      = ...
-                        repmat( d_V_beta( :, :, :, l ), [ 1 1 n.draw 1 ] );        
-        elseif l > 1        
-            d_a_beta( :, :, :, l )      = ...
-                        repmat( d_V_beta( :, :, :, l ), [ 1 1 n.draw 1 ] );
+        if l==1
+            da = repmat( d_V_beta(:,:,:,l), [1 1 n.draw]);
+        elseif l > 1            
                     
-            d_w_beta( :, :, :, l - 1 )  = d_w_beta( :, :, :, l - 1 ) .* ...
-                                            d_a_beta( :, :, : , l - 1 );
-
+            d_w_beta( :, :, :, l - 1 )  = d_w_beta( :, :, :, l - 1 ) .* da;
+            da = repmat( d_V_beta(:,:,:,l), [1 1 n.draw]);
             for h = 1 : l - 1            
-                d_a_beta( :, :, :, l )  = d_a_beta( :, :, :, l ) + ...
-                                    bsxfun( @times, d_w_beta( :, :, :, h ), ...
+                da  = da + bsxfun( @times, d_w_beta( :, :, :, h ), ...
                                             squeeze( S_i( l, h, : ) )' );
-            end            
+            end     
         end
-        d_a_beta( :, :, :, l )      = bsxfun( @times, ...
-                                              d_a_beta( :, :, :, l ), ...
-                                              -1./squeeze(S_i( l, l, : ) )' );
+        da     = bsxfun( @times, da, -1./squeeze(S_i( l, l, : ) )' );
+        d_a_beta( :, :, :, l )      = da;
     
         % Derivatives of a wrt s_i                                      
         d_a_s_i( l, l, :, :, l ) 	= -bsxfun( @times, ...

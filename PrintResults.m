@@ -209,12 +209,19 @@ for j = 1 : n.maxChoice
     fprintf( '\n' );
 end
 
+kmax = 1;
+for k = 2:numel(dataR)
+    if dataR(k).n.maxChoice > dataR(kmax).n.maxChoice
+        kmax = k;
+    end
+end
+
 for h = 1 : n.maxChoice  
         
     fprintf( '\n\t ***** Differenced Covariance Matrices');
     fprintf( ' ( base alternative = %1i ) ***** \n\n', h );
 
-    tempOmega   = dataR.M( :, :, h ,spec.base ) * S;
+    tempOmega   = dataR(kmax).M( :, :, h ,spec.base ) * S;
     tempOmega   = tempOmega * tempOmega';
 
     for j = 1 : ( n.maxChoice - 1 )

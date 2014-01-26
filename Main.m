@@ -1,13 +1,14 @@
 
-% clear all;
+clear;
 
 %% Model Specification %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Main data file name
 % spec.dataName   = 'Data\data_fullsample.txt';
-spec.dataName   = 'Data\data_sh_20stations.csv';
-% spec.dataName   = 'Data\data_salvo_huse_mnp.csv';
+% spec.dataName   = 'Data\data_sh_20stations.csv';
 % spec.dataName   = 'Data\logit_data_salvohuse.csv';
+% spec.dataName   = 'Data\data_sh_full_cons.csv';
+spec.dataName   = 'Data\data_spec1_sub_dvmarket_balanced.csv';
 
 % Share data file name
 spec.shareName  = 'Data\data_share_full.txt';
@@ -16,7 +17,7 @@ spec.shareName  = 'Data\data_share_full.txt';
 spec.logName    = 'Log\spec1_full_200.log';
 
 % Number of consumer groups ( R )
-n.conGroup  = 0;
+n.conGroup  = 2;
 
 % Number of product characteristic variables ( x_jl )
 n.prodChar  = 0;
@@ -44,7 +45,7 @@ spec.base       = 1;
 spec.scale      = 1 + (spec.base == 1); % not ready to change to other scale yet
 
 % Number of random draws 
-n.draw          = 500;
+n.draw          = 100;
 
 % Random draw type
 %   1 = use pseudo-random draws
