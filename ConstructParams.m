@@ -41,11 +41,17 @@ if n.conChar > 0
                         temp_beta_2( spec.base : end, : ) ];
 end
 
+% FE
+% delta is [ (n.maxChoice - 1) x n.market ]
+temp        = temp + n.conChar * ( n.maxChoice - 1 );
+params.delta  = zeros(n.maxChoice - 1, n.market);
+params.delta(:) = theta(temp + 1 : temp + numel(params.delta));
+
 % Choleski factor of the ( differenced ) covariance matrix 
 %   - the base alternative is spec.base 
 %   - S is a lower-triangular matrix
 %   - S is [ n.maxChoice x n.maxChoice ]
-temp        = temp + n.conChar * ( n.maxChoice - 1 );
+temp        = temp + numel(params.delta);
 
 mask.S = tril(true(n.maxChoice - 1));
 if numel(theta) - temp < sum(mask.S(:))

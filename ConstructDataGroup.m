@@ -32,9 +32,15 @@ for i = 1:numel(allchoices)
     end
 end
 
-
 data.alternative = - data.alternative;
 data.choice = - data.choice;
+
+% recode market ID
+allmarkets = sort(unique(data.marketID));
+for i = 1:numel(allmarkets)
+    data.marketID(data.marketID == allmarkets(i)) = -i;
+end
+data.marketID = -data.marketID;
 
 % Matrix of consumer group indicators ( i in r )
 temp            = 6;
@@ -56,7 +62,7 @@ end
 clear temp
 
 % Number of markets
-n.mkt       = length( unique( data.marketID ) );
+n.market    = length( unique( data.marketID ) );
 
 % Number of consumers
 n.con       = length( unique( data.conID ) );
@@ -104,12 +110,12 @@ end
 %% Reshape Data Matrices %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Create a data matrix "dataR" by reshaping "data"
-dataR.marketID      = zeros( n.maxChoice, 1 );
 dataR.conID         = zeros( n.maxChoice, 1 );
 dataR.choiceSetSize = zeros( n.maxChoice, 1 );
 dataR.alternative   = zeros( n.maxChoice, 1 );
 
 dataR.choice        = zeros( 1, n.con );
+dataR.marketID      = zeros( 1, n.con );
 dataR.price         = zeros( n.maxChoice, 1, n.con );
 dataR.conGroup      = zeros( n.maxChoice, n.conGroup, n.con );
 dataR.conGroupP     = zeros( n.maxChoice, n.conGroup, n.con );
@@ -123,6 +129,7 @@ for i = 1 : n.con
     index1          = ( data.conID == data.conID(i) );
     
     dataR.choice(i) = unique( data.choice( index1 ) );
+    dataR.marketID(i) = unique( data.marketID( index1 ) );
         
     dataR.price( :, :, i )          = data.price( index1, : );
     dataR.alternative( :, :, i )    = data.alternative( index1, : );

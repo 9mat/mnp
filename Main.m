@@ -8,7 +8,7 @@ clear;
 % spec.dataName   = 'Data\data_sh_20stations.csv';
 % spec.dataName   = 'Data\logit_data_salvohuse.csv';
 % spec.dataName   = 'Data\data_sh_full_cons.csv';
-spec.dataName   = 'Data\data_spec1_sub_dvmarket_balanced.csv';
+spec.dataName   = 'Data\data_sh_full_balanced.csv';
 
 % Share data file name
 spec.shareName  = 'Data\data_share_full.txt';
@@ -17,13 +17,13 @@ spec.shareName  = 'Data\data_share_full.txt';
 spec.logName    = 'Log\spec1_full_200.log';
 
 % Number of consumer groups ( R )
-n.conGroup  = 2;
+n.conGroup  = 0;
 
 % Number of product characteristic variables ( x_jl )
 n.prodChar  = 0;
 
 % Number of consumer characteristic variables ( x_i )
-n.conChar   = 6;
+n.conChar   = 1;
 
 % Allow for unobserved product heterogeneity ( xi_jl ) 
 %   0 = no
@@ -73,7 +73,7 @@ opt.display     = 'iter';
 opt.tolFun      = 1e-8;
 opt.tolCon      = 1e-8;
 opt.tolX        = 1e-15;
-opt.gradObj     = 'on';
+opt.gradObj     = 'off';
 opt.gradConstr  = 'on';
 
 % KNITRO/fmincon specific optimization options
@@ -88,8 +88,6 @@ ConstructData;
 % diary( spec.logName );
 
 % Start value
-n.maxChoice = max(dataMatrix(:,4));
-n.theta = 1 + n.conGroup + (n.maxChoice-1)*(n.prodChar + n.conChar) + (n.maxChoice - 1)*n.maxChoice/2 - 1;
 theta_0                         = ones(n.theta, 1 );
 theta_0(1)                      = -10;
 
