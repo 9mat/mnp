@@ -43,24 +43,23 @@ mask.beta_2(spec.base,:) = 0;
 mask.beta_1(spec.base,:) = 0;
 mask.S(spec.base,:) = 0;
 mask.S(:,spec.base) = 0;
-mask.S_noscale = mask.S;
 mask.S(spec.scale, spec.scale) = 0;
 
-mask.beta_1(mask.beta_1 == 1) = 1:sum(mask.beta_1(:));
-mask.beta_2(mask.beta_2(:) == 1) = 1:sum(mask.beta_2(:));
-mask.S(mask.S == 1) = 1:sum(mask.S(:));
-mask.S_noscale(mask.S_noscale == 1) = 1:sum(mask.S_noscale(:));
+n.beta_1 = sum(mask.beta_1(:));
+n.beta_2 = sum(mask.beta_2(:));
+n.S = sum(mask.S(:));
+n.theta = 1 + n.conGroup + n.beta_1 + n.beta_2 + n.S;
+
+mask.beta_1(mask.beta_1 == 1) = 1:n.beta_1;
+mask.beta_2(mask.beta_2 == 1) = 1:n.beta_2;
+mask.S(mask.S == 1) = 1:n.S;
 
 for k = 1:n.choiceset
     missing = ~de2bi(uniquecode(k));
     
     pick.beta_1 = mask.beta_1;
     pick.beta_2 = mask.beta_2;
-    if dataR(k).missingscale
-        pick.S = mask.S_noscale;
-    else
-        pick.S = mask.S;
-    end
+    pick.S = mask.S;
     
     pick.beta_1(missing,:) = 0;
     pick.beta_2(missing,:) = 0;
@@ -75,10 +74,10 @@ for k = 1:n.choiceset
     temp = numel(pick.theta);
     
     pick.theta = [pick.theta;pick.beta_1(:)+temp];
-    temp = numel(pick.theta);
+    temp = temp + n.beta_1;
 
     pick.theta = [pick.theta;pick.beta_2(:)+temp];
-    temp = numel(pick.theta);
+    temp = temp + n.beta_2;
 
     pick.theta = [pick.theta;pick.S(:)+temp];
     dataR(k).pick = pick.theta;

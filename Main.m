@@ -7,8 +7,8 @@ clear;
 % spec.dataName   = 'Data\data_fullsample.txt';
 % spec.dataName   = 'Data\data_sh_20stations.csv';
 % spec.dataName   = 'Data\logit_data_salvohuse.csv';
-% spec.dataName   = 'Data\data_sh_full_cons.csv';
-spec.dataName   = 'Data\data_spec1_sub_dvmarket_balanced.csv';
+spec.dataName   = 'Data\data_sh_full_cons.csv';
+% spec.dataName   = 'Data\data_spec1_sub_dvmarket_balanced.csv';
 
 % Share data file name
 spec.shareName  = 'Data\data_share_full.txt';
@@ -17,13 +17,13 @@ spec.shareName  = 'Data\data_share_full.txt';
 spec.logName    = 'Log\spec1_full_200.log';
 
 % Number of consumer groups ( R )
-n.conGroup  = 2;
+n.conGroup  = 0;
 
 % Number of product characteristic variables ( x_jl )
 n.prodChar  = 0;
 
 % Number of consumer characteristic variables ( x_i )
-n.conChar   = 6;
+n.conChar   = 10;
 
 % Allow for unobserved product heterogeneity ( xi_jl ) 
 %   0 = no
@@ -37,7 +37,7 @@ spec.unobs  = 0;
 %   covariance remains positive definite during optimization.
 %   1 = yes
 %   2 = no
-spec.constraint = 1;
+spec.constraint = 2;
 spec.boundSize  = 1e-6;
 
 % Base alternative
