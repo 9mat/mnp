@@ -8,7 +8,7 @@ clear;
 % spec.dataName   = 'Data\data_sh_20stations.csv';
 % spec.dataName   = 'Data\logit_data_salvohuse.csv';
 % spec.dataName   = 'Data\data_sh_full_cons.csv';
-spec.dataName   = 'Data\data_sh_full_balanced.csv';
+spec.dataName   = 'Data\data_spec1_sub_cleaned.csv';
 
 % Share data file name
 spec.shareName  = 'Data\data_share_full.txt';
@@ -17,13 +17,13 @@ spec.shareName  = 'Data\data_share_full.txt';
 spec.logName    = 'Log\spec1_full_200.log';
 
 % Number of consumer groups ( R )
-n.conGroup  = 0;
+n.conGroup  = 2;
 
 % Number of product characteristic variables ( x_jl )
 n.prodChar  = 0;
 
 % Number of consumer characteristic variables ( x_i )
-n.conChar   = 1;
+n.conChar   = 6;
 
 % Allow for unobserved product heterogeneity ( xi_jl ) 
 %   0 = no
@@ -37,7 +37,7 @@ spec.unobs  = 0;
 %   covariance remains positive definite during optimization.
 %   1 = yes
 %   2 = no
-spec.constraint = 1;
+spec.constraint = 2;
 spec.boundSize  = 1e-6;
 
 % Base alternative
@@ -45,7 +45,7 @@ spec.base       = 1;
 spec.scale      = 1 + (spec.base == 1); % not ready to change to other scale yet
 
 % Number of random draws 
-n.draw          = 100;
+n.draw          = 10;
 
 % Random draw type
 %   1 = use pseudo-random draws
@@ -73,8 +73,8 @@ opt.display     = 'iter';
 opt.tolFun      = 1e-8;
 opt.tolCon      = 1e-8;
 opt.tolX        = 1e-15;
-opt.gradObj     = 'off';
-opt.gradConstr  = 'on';
+opt.gradObj     = 'on';
+opt.gradConstr  = 'off';
 
 % KNITRO/fmincon specific optimization options
 opt.algorithm   = 'interior-point';   % 'active-set' or 'interior-point'

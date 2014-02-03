@@ -187,18 +187,18 @@ if nargout > 1
         
         % Derivatives of a wrt beta
         if l==1
-            da = repmat( d_V_beta(:,:,:,l), [1 1 n.draw]);
+            d_a_beta_l = repmat( d_V_beta(:,:,:,l), [1 1 n.draw]);
         elseif l > 1            
                     
-            d_w_beta( :, :, :, l - 1 )  = d_w_beta( :, :, :, l - 1 ) .* da;
-            da = repmat( d_V_beta(:,:,:,l), [1 1 n.draw]);
+            d_w_beta( :, :, :, l - 1 )  = d_w_beta( :, :, :, l - 1 ) .* d_a_beta_l;
+            d_a_beta_l = repmat( d_V_beta(:,:,:,l), [1 1 n.draw]);
             for h = 1 : l - 1            
-                da  = da + bsxfun( @times, d_w_beta( :, :, :, h ), ...
+                d_a_beta_l  = d_a_beta_l + bsxfun( @times, d_w_beta( :, :, :, h ), ...
                                             squeeze( S_i( l, h, : ) )' );
             end     
         end
-        da     = bsxfun( @times, da, -1./squeeze(S_i( l, l, : ) )' );
-        d_a_beta( :, :, :, l )      = da;
+        d_a_beta_l     = bsxfun( @times, d_a_beta_l, -1./squeeze(S_i( l, l, : ) )' );
+        d_a_beta( :, :, :, l )      = d_a_beta_l;
     
         % Derivatives of a wrt s_i                                      
         d_a_s_i( l, l, :, :, l ) 	= -bsxfun( @times, ...
@@ -229,21 +229,19 @@ if nargout > 1
         end
         
         % derivative of a wrt to delta (i.e. fixed effects)      
-        for k = 1:dataR.n.market
-            if l==1
-                da = repmat( Mn(:,:,l), [1 1 n.draw]);
-            elseif l > 1
-                
-                d_w_delta( :, :, :, l - 1 )  = d_w_delta( :, :, :, l - 1 ) .* da;
-                da = repmat( Mn(:,:,l), [1 1 n.draw]);
-                for h = 1 : l - 1
-                    da  = da + bsxfun( @times, d_w_delta( :, :, :, h ), ...
-                        squeeze( S_i( l, h, : ) )' );
-                end
+        if l==1
+            d_a_delta_l = repmat( Mn(:,:,l), [1 1 n.draw]);
+        elseif l > 1
+            
+            d_w_delta( :, :, :, l - 1 )  = d_w_delta( :, :, :, l - 1 ) .* d_a_delta_l;
+            d_a_delta_l = repmat( Mn(:,:,l), [1 1 n.draw]);
+            for h = 1 : l - 1
+                d_a_delta_l  = d_a_delta_l + bsxfun( @times, d_w_delta( :, :, :, h ), ...
+                    squeeze( S_i( l, h, : ) )' );
             end
-            da     = bsxfun( @times, da, -1./squeeze(S_i( l, l, : ) )' );
-            d_a_delta( :, :, :, l )      = da;
         end
+        d_a_delta_l     = bsxfun( @times, d_a_delta_l, -1./squeeze(S_i( l, l, : ) )' );
+        d_a_delta( :, :, :, l )      = d_a_delta_l;
         
     end 
     
@@ -271,13 +269,13 @@ if nargout > 1
     % Derivatives of L wrt delta
     d_L_delta   = sum( bsxfun( @times, normpdf_a_ub, d_a_delta ), 4 );
     d_L_delta   = ...
-        mean( bsxfun( @times, d_L_beta, ...
+        mean( bsxfun( @times, d_L_delta, ...
                       reshape( probChosen, [ 1 n.con n.draw ] ) ), 3 );  
                   
     d_L_delta_full = zeros((n.maxChoice - 1)*n.market, n.con);
     for k = 1:n.market
         marketindex = dataR.marketID == k;
-        feindex = (n.maxChoice - 1)*k+1:(n.maxChoice - 1)*(k+1);
+        feindex = (n.maxChoice - 1)*(k-1)+1:(n.maxChoice - 1)*k;
         d_L_delta_full(feindex, marketindex) = d_L_delta(:,marketindex);
     end
 

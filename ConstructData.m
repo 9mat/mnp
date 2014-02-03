@@ -51,28 +51,26 @@ mask.beta_2(spec.base,:) = 0;
 mask.beta_1(spec.base,:) = 0;
 mask.S(spec.base,:) = 0;
 mask.S(:,spec.base) = 0;
-mask.S_noscale = mask.S;
 mask.S(spec.scale, spec.scale) = 0;
 
-n.theta = 1+n.conGroup + sum(mask.beta_2(:)) + sum(mask.beta_1(:)) + ...
-    + sum(mask.S(:)) + deltaindex(end) - 1;
+n.beta_1 = sum(mask.beta_1(:));
+n.beta_2 = sum(mask.beta_2(:));
+n.S = sum(mask.S(:));
+n.delta = deltaindex(end) - 1;
+
+n.market = numel(allmarkets);
+n.theta = 1+n.conGroup + n.beta_1 + n.beta_2 + n.S + n.delta;
 
 mask.beta_1(mask.beta_1 == 1) = 1:sum(mask.beta_1(:));
 mask.beta_2(mask.beta_2(:) == 1) = 1:sum(mask.beta_2(:));
 mask.S(mask.S == 1) = 1:sum(mask.S(:));
-mask.S_noscale(mask.S_noscale == 1) = 1:sum(mask.S_noscale(:));
-
 
 for k = 1:n.choiceset
     missing = ~de2bi(uniquecode(k));
     
     pick.beta_1 = mask.beta_1;
     pick.beta_2 = mask.beta_2;
-    if dataR(k).missingscale
-        pick.S = mask.S_noscale;
-    else
-        pick.S = mask.S;
-    end
+    pick.S = mask.S;
     
     pick.beta_1(missing,:) = 0;
     pick.beta_2(missing,:) = 0;
@@ -88,10 +86,8 @@ for k = 1:n.choiceset
     choicesetsize = numel(unique(alternative(belong)));
     pick.delta = [];
     for j = 1:numel(allsubmarkets)
-        for i = 2:choicesetsize-1
-            m = find(allmarkets == allsubmarkets(j));
-            pick.delta = [pick.delta deltaindex:deltaindex+choicesetsize-2];
-        end
+        m = find(allmarkets == allsubmarkets(j));
+        pick.delta = [pick.delta deltaindex(m):deltaindex(m)+choicesetsize-2];
     end
     pick.delta = sort(pick.delta);
     
@@ -99,13 +95,13 @@ for k = 1:n.choiceset
     temp = numel(pick.theta);
     
     pick.theta = [pick.theta;pick.beta_1(:)+temp];
-    temp = numel(pick.theta);
+    temp = temp + n.beta_1;
 
     pick.theta = [pick.theta;pick.beta_2(:)+temp];
-    temp = numel(pick.theta);
+    temp = temp + n.beta_2;
 
     pick.theta = [pick.theta;pick.delta(:)+temp];
-    temp = numel(pick.theta);
+    temp = temp + n.delta;
 
     pick.theta = [pick.theta;pick.S(:)+temp];
     dataR(k).pick = pick.theta;
