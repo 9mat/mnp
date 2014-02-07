@@ -38,6 +38,7 @@ S	= params.S;
 
 %% Compute ( Differenced ) Deterministic Utilities %%%%%%%%%%%%%%%%%%%%%%%%
 
+params.delta = reshape(params.delta, n.maxChoice - 1, n.market);
 V   = params.delta(:, dataR.marketID);
 for i = 1:n.con
     V(:, i) = dataR.M(:,:,dataR.choice(i),base)*V(:, i);

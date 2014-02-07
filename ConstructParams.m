@@ -44,8 +44,7 @@ end
 % FE
 % delta is [ (n.maxChoice - 1) x n.market ]
 temp        = temp + n.conChar * ( n.maxChoice - 1 );
-params.delta  = zeros(n.maxChoice - 1, n.market);
-params.delta(:) = theta(temp + 1 : temp + numel(params.delta));
+params.delta = theta(temp + 1 : temp + n.delta);
 
 % Choleski factor of the ( differenced ) covariance matrix 
 %   - the base alternative is spec.base 

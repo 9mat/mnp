@@ -83,6 +83,8 @@ n.beta_all  = n.beta + n.conChar;
 n.s         = ( n.maxChoice - 1 ) * n.maxChoice / 2 - 1;
 n.s_all     = n.s + 1;
 
+n.delta     = (n.maxChoice - 1)*n.market;
+
 % theta = [ beta; s ];
 n.theta     = n.beta + n.s;          
 n.theta_all = n.beta_all + n.s_all;

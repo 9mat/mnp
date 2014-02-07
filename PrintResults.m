@@ -39,6 +39,9 @@ S	= params.S;
 omega                       = zeros( n.maxChoice, n.maxChoice );
 omega( 2 : end, 2 : end )   = S * S';
 
+delta = NaN(n.maxChoice, n.market);
+delta(mask.delta==1) = params.delta;
+delta(spec.base,:) = 0;
 clear temp
 
 %% Print Some Prelimiary Informations %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -234,3 +237,6 @@ for h = 1 : n.maxChoice
     
     clear tempOmega
 end
+
+fprintf( '\n***** Fixed Effect estimates');
+printmat(delta', 'Fixed Effects', num2str(allmarkets'), 'choice_1 choice_2 choice_3');

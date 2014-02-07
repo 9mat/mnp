@@ -14,7 +14,8 @@ spec.dataName   = 'Data\data_spec1_sub_cleaned.csv';
 spec.shareName  = 'Data\data_share_full.txt';
 
 % Log file name
-spec.logName    = 'Log\spec1_full_200.log';
+[pathstr,name,ext] = fileparts(spec.dataName);
+spec.logName    = ['Log\' name '.' datestr(now,'yyyymmdd.HHMM') '.log'];
 
 % Number of consumer groups ( R )
 n.conGroup  = 2;
@@ -77,7 +78,7 @@ opt.gradObj     = 'on';
 opt.gradConstr  = 'off';
 
 % KNITRO/fmincon specific optimization options
-opt.algorithm   = 'interior-point';   % 'active-set' or 'interior-point'
+opt.algorithm   = 'active-set';   % 'active-set' or 'interior-point'
 
 %% Import Data and Construct Data Matrices %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

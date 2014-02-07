@@ -20,7 +20,6 @@ n.maxChoice     = max(alternative);
 n.con           = numel(uniqueID);
 
 choicesetcode   = zeros(size(conID));
-
 for i = 1:n.con
     index1 = (conID == uniqueID(i));
     choiceset = false(1, n.maxChoice);
@@ -37,10 +36,16 @@ for k = 1:n.choiceset
 end
 
 allmarkets = sort(unique(marketID));
+n.market = numel(allmarkets);
 choicesetsize = zeros(size(allmarkets));
+
+mask.delta = zeros(n.maxChoice, n.market);
 for k = 1:numel(allmarkets)
-    choicesetsize(k) = numel(unique(alternative(marketID == allmarkets(k))));
+    allchoices = unique(alternative(marketID == allmarkets(k)));
+    mask.delta(allchoices,k) = 1;
+    choicesetsize(k) = numel(allchoices);
 end
+mask.delta(spec.base,:) = 0;
 deltaindex = [0 cumsum(choicesetsize-1)'] + 1;
 
 mask.beta_1 = ones(n.maxChoice, n.prodChar);
@@ -53,12 +58,12 @@ mask.S(spec.base,:) = 0;
 mask.S(:,spec.base) = 0;
 mask.S(spec.scale, spec.scale) = 0;
 
+
 n.beta_1 = sum(mask.beta_1(:));
 n.beta_2 = sum(mask.beta_2(:));
 n.S = sum(mask.S(:));
 n.delta = deltaindex(end) - 1;
 
-n.market = numel(allmarkets);
 n.theta = 1+n.conGroup + n.beta_1 + n.beta_2 + n.S + n.delta;
 
 mask.beta_1(mask.beta_1 == 1) = 1:sum(mask.beta_1(:));
