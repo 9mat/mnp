@@ -24,7 +24,7 @@ for i = 1:n.con
     index1 = (conID == uniqueID(i));
     choiceset = false(1, n.maxChoice);
     choiceset(alternative(index1)) = true;
-    choicesetcode(index1) = bi2de(choiceset);
+    choicesetcode(index1) = bin2dec(num2str(choiceset));
 end
 
 uniquecode = unique(choicesetcode);
@@ -55,7 +55,7 @@ mask.beta_2(mask.beta_2 == 1) = 1:n.beta_2;
 mask.S(mask.S == 1) = 1:n.S;
 
 for k = 1:n.choiceset
-    missing = ~de2bi(uniquecode(k));
+    missing = dec2bin(uniquecode(k)) == '0';
     
     pick.beta_1 = mask.beta_1;
     pick.beta_2 = mask.beta_2;

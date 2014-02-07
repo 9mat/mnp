@@ -7,23 +7,24 @@ clear;
 % spec.dataName   = 'Data\data_fullsample.txt';
 % spec.dataName   = 'Data\data_sh_20stations.csv';
 % spec.dataName   = 'Data\logit_data_salvohuse.csv';
-spec.dataName   = 'Data\data_sh_full_cons.csv';
-% spec.dataName   = 'Data\data_spec1_sub_dvmarket_balanced.csv';
+% spec.dataName   = 'Data\data_sh_full_cons.csv';
+spec.dataName   = 'Data\data_spec1_full.txt';
 
 % Share data file name
 spec.shareName  = 'Data\data_share_full.txt';
 
 % Log file name
-spec.logName    = 'Log\spec1_full_200.log';
+[pathstr,name,ext] = fileparts(spec.dataName);
+spec.logName    = ['Log\' name '.' datestr(now,'yyyymmdd.HHMM') '.log'];
 
 % Number of consumer groups ( R )
-n.conGroup  = 0;
+n.conGroup  = 2;
 
 % Number of product characteristic variables ( x_jl )
 n.prodChar  = 0;
 
 % Number of consumer characteristic variables ( x_i )
-n.conChar   = 10;
+n.conChar   = 6;
 
 % Allow for unobserved product heterogeneity ( xi_jl ) 
 %   0 = no
@@ -41,11 +42,11 @@ spec.constraint = 2;
 spec.boundSize  = 1e-6;
 
 % Base alternative
-spec.base       = 1;
+spec.base       = 3;
 spec.scale      = 1 + (spec.base == 1); % not ready to change to other scale yet
 
 % Number of random draws 
-n.draw          = 100;
+n.draw          = 200;
 
 % Random draw type
 %   1 = use pseudo-random draws
@@ -77,7 +78,14 @@ opt.gradObj     = 'on';
 opt.gradConstr  = 'on';
 
 % KNITRO/fmincon specific optimization options
-opt.algorithm   = 'interior-point';   % 'active-set' or 'interior-point'
+opt.algorithm   = 'active-set';   % 'active-set' or 'interior-point'
+
+%% Log
+diary on;
+display(n);
+display(spec);
+display(opt);
+start_time = now;
 
 %% Import Data and Construct Data Matrices %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -100,6 +108,7 @@ RunEstimation;
 
 PrintResults;
 
+fprintf(['\n\n\n Wall-clock running time = ' datestr(now - start_time,13) '\n']);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 diary off;
