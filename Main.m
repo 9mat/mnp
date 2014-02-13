@@ -78,7 +78,18 @@ opt.gradObj     = 'on';
 opt.gradConstr  = 'off';
 
 % KNITRO/fmincon specific optimization options
-opt.algorithm   = 'active-set';   % 'active-set' or 'interior-point'
+opt.algorithm   = 'interior-point';   % 'active-set' or 'interior-point'
+
+%% Logging and timming
+diary(spec.logName);
+diary on;
+
+display(spec);
+display(n);
+display(opt);
+
+start_time = tic;
+wall_clock = now;
 
 %% Import Data and Construct Data Matrices %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -101,4 +112,7 @@ PrintResults;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+fprintf('\n\n   Total time      = %.4f seconds\n', toc(start_time));
+fprintf(['   Wall-clock time = ' datestr(now - wall_clock,13) '\n']);
 diary off;

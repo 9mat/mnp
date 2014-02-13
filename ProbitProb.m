@@ -40,9 +40,11 @@ S	= params.S;
 
 params.delta = reshape(params.delta, n.maxChoice - 1, n.market);
 V   = params.delta(:, dataR.marketID);
-for i = 1:n.con
-    V(:, i) = dataR.M(:,:,dataR.choice(i),base)*V(:, i);
-end
+V   = [V(1:spec.base-1, :); zeros(1, n.con); V(spec.base:end, :)];
+ind = sub2ind(size(V), dataR.choice, 1:n.con);
+V   = bsxfun(@minus, V, V(ind));
+V(ind) = [];
+V = reshape(V, n.maxChoice-1, n.con);
 
 if ( 1 - spec.unobs ) > 0
     %   alpha_0 is [ 1 x 1 ]
@@ -88,10 +90,7 @@ for j = 1 : n.maxChoice
     MS = dataR.M(:,:,j,base) * S;
     S_j(:,:,j) = mychol(MS*MS');
 end
-     
 S_i = S_j(:,:,dataR.choice);
-S_i_permuted = permute(S_i, [3 2 1]);
-S_i_permuted(:,end,:) = [];
 
 %% Calculate Probabilities %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -101,15 +100,19 @@ ub          = zeros( n.con, n.draw, n.maxChoice - 1 );
 
 for j = 1 : n.maxChoice - 1        
     aj = repmat(permute(V(j, :), [2 3 1]), [1 n.draw]);
+    
     if j > 1
         w(:,:,j-1) = norminv(ubj .* dataR.draw.uni(:,:,j-1));
-        w_S_i = bsxfun(@times, w, S_i_permuted(:,:,j));
-        aj = aj + sum(w_S_i,3);
+        for h = 1 : j - 1
+            aj  = aj + bsxfun(@times, w(:,:,h), squeeze(S_i(j,h,:)));
+        end
     end
-    aj = bsxfun(@times, aj, -1./squeeze(S_i(j,j,:)));
+    
+    aj = bsxfun(@rdivide, aj, -squeeze(S_i(j,j,:)));
     ubj = 0.5*erfc(-aj/sqrt(2)); % 3x faster than normcdf
+    
     a(:,:,j) = aj;
-    ub(:,:,j) = ubj; % 3x faster than normcdf
+    ub(:,:,j) = ubj;
 end
 
 ub(ub==0) = eps;
@@ -137,6 +140,8 @@ if nargout > 1
     normpdf_a_ub    = reshape( normpdf_a ./ ub, ...
                                [ 1 n.con n.draw ( n.maxChoice - 1 ) ] );
                            
+    clear normpdf_w;
+    
     % Derivatives of V wrt to beta
     if ( 1 - spec.unobs ) > 0
         d_V_beta    = permute( dataR.diff.price, [ 2 3 1 ] ); 
@@ -198,13 +203,13 @@ if nargout > 1
                                             squeeze( S_i( l, h, : ) )' );
             end     
         end
-        d_a_beta_l     = bsxfun( @times, d_a_beta_l, -1./squeeze(S_i( l, l, : ) )' );
+        d_a_beta_l     = bsxfun( @rdivide, d_a_beta_l, -squeeze(S_i( l, l, : ) )' );
         d_a_beta( :, :, :, l )      = d_a_beta_l;
-    
+            
         % Derivatives of a wrt s_i                                      
-        d_a_s_i( l, l, :, :, l ) 	= -bsxfun( @times, ...
+        d_a_s_i( l, l, :, :, l ) 	= -bsxfun( @rdivide, ...
                     reshape( a( :, :, l ), [ 1 1 n.con n.draw 1 ] ), ...
-                    1./reshape( S_i( l, l, : ), [ 1 1 n.con 1 1 ] ) );
+                    reshape( S_i( l, l, : ), [ 1 1 n.con 1 1 ] ) );
                 
         for i = 1 : n.maxChoice - 1
             for j = 1 : n.maxChoice - 1
@@ -221,10 +226,12 @@ if nargout > 1
                         d_a_s_i( i, j, :, :, l )    = -temp + ...
                                                 d_a_s_i( i, j, :, :, l );
                     end
+                    clear temp;
+                    
                 elseif ( i == l ) && ( i > j )
-                    d_a_s_i( i, j, :, :, l )    = -bsxfun( @times, ...
+                    d_a_s_i( i, j, :, :, l )    = -bsxfun( @rdivide, ...
                         reshape( w( :, :, j ), [ 1 1 n.con n.draw 1 ] ), ...
-                        1./reshape( S_i( l, l, : ), [ 1 1 n.con 1 1 ] ) );
+                        reshape( S_i( l, l, : ), [ 1 1 n.con 1 1 ] ) );
                 end                
             end
         end
@@ -232,8 +239,7 @@ if nargout > 1
         % derivative of a wrt to delta (i.e. fixed effects)      
         if l==1
             d_a_delta_l = repmat( Mn(:,:,l), [1 1 n.draw]);
-        elseif l > 1
-            
+        elseif l > 1            
             d_w_delta( :, :, :, l - 1 )  = d_w_delta( :, :, :, l - 1 ) .* d_a_delta_l;
             d_a_delta_l = repmat( Mn(:,:,l), [1 1 n.draw]);
             for h = 1 : l - 1
@@ -241,10 +247,12 @@ if nargout > 1
                     squeeze( S_i( l, h, : ) )' );
             end
         end
-        d_a_delta_l     = bsxfun( @times, d_a_delta_l, -1./squeeze(S_i( l, l, : ) )' );
+        d_a_delta_l     = bsxfun( @rdivide, d_a_delta_l, -squeeze(S_i( l, l, : ) )' );
         d_a_delta( :, :, :, l )      = d_a_delta_l;
         
     end 
+    
+    clear d_a_delta_l d_a_beta_l d_w_beta d_w_s_i d_V_beta;
     
     % Derivatives of a wrt s
     d_a_s       = zeros( n.s + 1, n.con, n.draw, n.maxChoice - 1 );
@@ -259,20 +267,25 @@ if nargout > 1
                  
         temp1    = temp1 + temp2;         
     end
-    clear temp1 temp2
+    clear temp1 temp2 d_a_s_i;
     
     % Derivatives of L wrt beta
-    d_L_beta    = sum( bsxfun( @times, normpdf_a_ub, d_a_beta ), 4 );
+    d_L_beta    = bsxfun( @times, normpdf_a_ub, d_a_beta );
+    d_L_beta    = sum(d_L_beta , 4 );
     d_L_beta    = ...
         mean( bsxfun( @times, d_L_beta, ...
                       reshape( probChosen, [ 1 n.con n.draw ] ) ), 3 );  
+    
+    clear d_a_beta;
     
     % Derivatives of L wrt delta
     d_L_delta   = sum( bsxfun( @times, normpdf_a_ub, d_a_delta ), 4 );
     d_L_delta   = ...
         mean( bsxfun( @times, d_L_delta, ...
                       reshape( probChosen, [ 1 n.con n.draw ] ) ), 3 );  
-                  
+    
+    clear d_a_delta;
+    
     d_L_delta_full = zeros((n.maxChoice - 1)*n.market, n.con);
     for k = 1:n.market
         marketindex = dataR.marketID == k;
@@ -287,31 +300,35 @@ if nargout > 1
         mean( bsxfun( @times, d_L_s_i, ...
                       reshape( probChosen, [ 1 n.con n.draw ] ) ), 3 ); 
     d_L_s_i( d_L_s_i == Inf )   = 1e+10;
-
-    % Derivatives of s_n wrt s
-    d_s_n_s     = zeros( n.s_all, n.s + 1, n.con );  
+    
+    clear normpdf_a_ub d_a_s;
     
     % Derivatives of L wrt s
     d_L_s       = zeros( n.s_all, n.con );
     
     for j = 1 : n.maxChoice
-       A_j(:,:,j)   = pinv( ...
+       A_j  = pinv( ...
                         kron( S_j(:,:,j), eye( n.maxChoice - 1 ) ) * dataR.L + ...
                         kron( eye( n.maxChoice - 1 ), S_j(:,:,j) ) * dataR.K )';
-       B_j(:,:,j)   = ( kron( dataR.M( :, :, j, base ) * S, ...
+       B_j  = ( kron( dataR.M( :, :, j, base ) * S, ...
                               dataR.M( :, :, j, base ) ) * ...
                         dataR.L + ...
                         kron( dataR.M( :, :, j, base ), ...
                               dataR.M( :, :, j, base ) * S ) * ...
                         dataR.K )';
-       BA_j(:,:,j)  = B_j(:,:,j) * A_j(:,:,j);
+       BA_j(:,:,j)  = B_j * A_j;
     end
     
+    % Derivatives of s_n wrt s
     d_s_n_s = BA_j(:,:,dataR.choice);
+    
+    clear A_j B_j BA_j S_j;
     
     for i = 1 : n.con        
         d_L_s( :, i )        = d_s_n_s( :, :, i ) * d_L_s_i( :, i );
     end    
+    
+    clear d_s_n_s d_L_s_i;
         
     probChosen      = mean( probChosen, 2 );
     d_probChosen    = [ d_L_beta( dataR.betaIndex, : ); 

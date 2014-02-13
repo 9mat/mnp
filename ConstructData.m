@@ -32,7 +32,7 @@ n.choiceset = numel(uniquecode);
 
 for k = 1:n.choiceset
     belong = choicesetcode == uniquecode(k);
-    [dataR(k), data(k)] = ConstructDataGroup(dataMatrix(belong,:),n,spec);
+    [dataR{k}, data{k}] = ConstructDataGroup(dataMatrix(belong,:),n,spec);
 end
 
 allmarkets = sort(unique(marketID));
@@ -109,5 +109,5 @@ for k = 1:n.choiceset
     temp = temp + n.delta;
 
     pick.theta = [pick.theta;pick.S(:)+temp];
-    dataR(k).pick = pick.theta;
+    dataR{k}.pick = pick.theta;
 end

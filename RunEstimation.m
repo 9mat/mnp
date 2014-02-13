@@ -5,13 +5,6 @@
 ub  = ones( n.theta, 1 ) * 200;    
 lb  = ones( n.theta, 1 ) * -200;
 
-n.beta = 0;
-for k = 1:n.choiceset
-    if n.beta < dataR(k).n.beta
-        n.beta = dataR(k).n.beta;
-    end
-end
-
 % Define objective function
 obj = @(x) LogLike( x, dataR, spec );
 
