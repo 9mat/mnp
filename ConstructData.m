@@ -32,7 +32,7 @@ n.choiceset = numel(uniquecode);
 
 for k = 1:n.choiceset
     belong = choicesetcode == uniquecode(k);
-    [dataR(k), data(k)] = ConstructDataGroup(dataMatrix(belong,:),n,spec);
+    [dataR{k}, data(k)] = ConstructDataGroup(dataMatrix(belong,:),n,spec);
 end
 
 mask.beta_1 = ones(n.maxChoice, n.prodChar);
@@ -47,7 +47,9 @@ mask.S(spec.scale, spec.scale) = 0;
 
 n.beta_1 = sum(mask.beta_1(:));
 n.beta_2 = sum(mask.beta_2(:));
+n.beta = n.beta_1 + n.beta_2 + 1 + n.conGroup;
 n.S = sum(mask.S(:));
+n.maxChoice = max(dataMatrix(:,4));
 n.theta = 1 + n.conGroup + n.beta_1 + n.beta_2 + n.S;
 
 mask.beta_1(mask.beta_1 == 1) = 1:n.beta_1;
@@ -80,5 +82,7 @@ for k = 1:n.choiceset
     temp = temp + n.beta_2;
 
     pick.theta = [pick.theta;pick.S(:)+temp];
-    dataR(k).pick = pick.theta;
+    dataR{k}.pick = pick.theta;
 end
+
+clear dataMatrix conID alternative choicesetcode belong index1;

@@ -14,7 +14,7 @@ spec.dataName   = 'Data\data_spec1_full.txt';
 spec.shareName  = 'Data\data_share_full.txt';
 
 % Log file name
-[pathstr,name,ext] = fileparts(spec.dataName);
+[~,name,~] = fileparts(spec.dataName);
 spec.logName    = ['Log\' name '.' datestr(now,'yyyymmdd.HHMM') '.log'];
 
 % Number of consumer groups ( R )
@@ -46,7 +46,7 @@ spec.base       = 3;
 spec.scale      = 1 + (spec.base == 1); % not ready to change to other scale yet
 
 % Number of random draws 
-n.draw          = 200;
+n.draw          = 100;
 
 % Random draw type
 %   1 = use pseudo-random draws
@@ -78,14 +78,9 @@ opt.gradObj     = 'on';
 opt.gradConstr  = 'on';
 
 % KNITRO/fmincon specific optimization options
-opt.algorithm   = 'active-set';   % 'active-set' or 'interior-point'
+opt.algorithm   = 'interior-point';   % 'active-set' or 'interior-point'
 
 %% Log
-diary on;
-display(n);
-display(spec);
-display(opt);
-start_time = now;
 
 %% Import Data and Construct Data Matrices %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -93,12 +88,16 @@ ConstructData;
 
 %% Run Estimation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% diary( spec.logName );
+% Prepare the log file and display specifications
+diary( spec.logName );
+diary on;
+display(n);
+display(spec);
+display(opt);
+start_time = now;
 
 % Start value
-n.maxChoice = max(dataMatrix(:,4));
-n.theta = 1 + n.conGroup + (n.maxChoice-1)*(n.prodChar + n.conChar) + (n.maxChoice - 1)*n.maxChoice/2 - 1;
-theta_0                         = ones(n.theta, 1 );
+theta_0                         = rand(n.theta, 1 );
 theta_0(1)                      = -10;
 
 % Run estimation
@@ -109,6 +108,12 @@ RunEstimation;
 PrintResults;
 
 fprintf(['\n\n\n Wall-clock running time = ' datestr(now - start_time,13) '\n']);
+
+%% Save the results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clearvars -except thetaHat MLE spec n opt;
+[~,name,~] = fileparts(spec.logName);
+save(['Results/' name '.mat']);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 diary off;
