@@ -212,6 +212,9 @@ for j = 1 : n.maxChoice
     fprintf( '\n' );
 end
 
+% Find a data group with all the alternatives; this is to obtain the
+% correct M matrix used to get Differenced Covariance Matrices below
+% !assumption: there exists such group (with all the alternatives)
 for k = 1:numel(dataR)
     if dataR{k}.n.maxChoice == n.maxChoice
         kmax = k;

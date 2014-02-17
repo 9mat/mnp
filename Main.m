@@ -14,7 +14,7 @@ spec.dataName   = 'Data\data_spec1_sub_cleaned.csv';
 spec.shareName  = 'Data\data_share_full.txt';
 
 % Log file name
-[pathstr,name,ext] = fileparts(spec.dataName);
+[~,name,~] = fileparts(spec.dataName);
 spec.logName    = ['Log\' name '.' datestr(now,'yyyymmdd.HHMM') '.log'];
 
 % Number of consumer groups ( R )
@@ -103,15 +103,21 @@ ConstructData;
 theta_0                         = ones(n.theta, 1 );
 theta_0(1)                      = -10;
 
-% Run estimation
+%% Run estimation
 RunEstimation;
 
 %% Print Results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 PrintResults;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+fprintf(['\n\n\n Wall-clock running time = ' datestr(now - start_time,13) '\n']);
 
+%% Save the results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+clearvars -except thetaHat MLE spec n opt;
+[~,name,~] = fileparts(spec.logName);
+save(['Results/' name '.mat']);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fprintf('\n\n   Total time      = %.4f seconds\n', toc(start_time));
 fprintf(['   Wall-clock time = ' datestr(now - wall_clock,13) '\n']);

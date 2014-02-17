@@ -88,8 +88,9 @@ S_j         = zeros( n.maxChoice - 1, n.maxChoice - 1, n.maxChoice );
 
 for j = 1 : n.maxChoice
     MS = dataR.M(:,:,j,base) * S;
-    S_j(:,:,j) = mychol(MS*MS');
+    S_j(:,:,j) = mychol(MS*MS'); % use a more stable decomposition
 end
+     
 S_i = S_j(:,:,dataR.choice);
 
 %% Calculate Probabilities %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -98,22 +99,23 @@ a           = repmat(permute(V, [2 3 1]), [1 n.draw 1]);
 w           = zeros( n.con, n.draw, n.maxChoice - 2 );
 ub          = zeros( n.con, n.draw, n.maxChoice - 1 ); 
 
+% In the loops, use temporary matrices aj and ubj to avoid repeated 
+% indexing to matrices a and ub, which can be very costly
 for j = 1 : n.maxChoice - 1        
     aj = repmat(permute(V(j, :), [2 3 1]), [1 n.draw]);
-    
     if j > 1
         w(:,:,j-1) = norminv(ubj .* dataR.draw.uni(:,:,j-1));
-        for h = 1 : j - 1
-            aj  = aj + bsxfun(@times, w(:,:,h), squeeze(S_i(j,h,:)));
+        for h = 1:j-1
+            aj = aj + bsxfun( @times, w(:,:,h), squeeze(S_i(j,h,:)));
         end
     end
-    
     aj = bsxfun(@rdivide, aj, -squeeze(S_i(j,j,:)));
     ubj = 0.5*erfc(-aj/sqrt(2)); % 3x faster than normcdf
     
     a(:,:,j) = aj;
     ub(:,:,j) = ubj;
 end
+clear aj ubj;
 
 ub(ub==0) = eps;
 probChosen = prod(ub,3);
@@ -139,8 +141,7 @@ if nargout > 1
     u_normpdf_a_w   = dataR.draw.uni .* normpdf_a(:,:,1:end-1) ./ normpdf_w; 
     normpdf_a_ub    = reshape( normpdf_a ./ ub, ...
                                [ 1 n.con n.draw ( n.maxChoice - 1 ) ] );
-                           
-    clear normpdf_w;
+    clear normpdf_w ub;      
     
     % Derivatives of V wrt to beta
     if ( 1 - spec.unobs ) > 0
@@ -251,8 +252,7 @@ if nargout > 1
         d_a_delta( :, :, :, l )      = d_a_delta_l;
         
     end 
-    
-    clear d_a_delta_l d_a_beta_l d_w_beta d_w_s_i d_V_beta;
+    clear d_w_beta d_w_s_i d_V_beta S_i d_a a w;  
     
     % Derivatives of a wrt s
     d_a_s       = zeros( n.s + 1, n.con, n.draw, n.maxChoice - 1 );
@@ -302,10 +302,14 @@ if nargout > 1
     d_L_s_i( d_L_s_i == Inf )   = 1e+10;
     
     clear normpdf_a_ub d_a_s;
+
+    % Derivatives of s_n wrt s
     
-    % Derivatives of L wrt s
-    d_L_s       = zeros( n.s_all, n.con );
-    
+    % Because matrices A and B depends on choices but not on individuals,
+    % first calculate A and B for each choice and replicate them to
+    % all the consumers according to their choices 
+    % (note: in Bolduc, equation (B2) to (B4), A and B depend on consumers
+    % because of individual choice sets, which here assumed away)
     for j = 1 : n.maxChoice
        A_j  = pinv( ...
                         kron( S_j(:,:,j), eye( n.maxChoice - 1 ) ) * dataR.L + ...
@@ -324,6 +328,8 @@ if nargout > 1
     
     clear A_j B_j BA_j S_j;
     
+    % Derivatives of L wrt s
+    d_L_s       = zeros( n.s_all, n.con );
     for i = 1 : n.con        
         d_L_s( :, i )        = d_s_n_s( :, :, i ) * d_L_s_i( :, i );
     end    
