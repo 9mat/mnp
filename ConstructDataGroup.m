@@ -1,12 +1,15 @@
 
 function [dataR, data] = ConstructDataGroup(dataMatrix, n, spec)
 
-% check that data is balanced
+% check that data is relatively balanced (i.e. choice sets are the same for
+% all consumers)
 alternative = dataMatrix(:, 4);
 allchoices = unique(alternative);
 count = histc(alternative, allchoices);
 assert(all(count(2:end)==count(1)));
 
+% check if the choice set includes the scale alternative, otherwise we
+% need to estimate the first element of the covariance matrix
 dataR.missingscale = ~any(allchoices == spec.scale);
 
 % sort data by alternative
@@ -21,7 +24,7 @@ data.alternative    = dataMatrix( :, 4 );
 data.choice         = dataMatrix( :, 5 );
 data.price          = dataMatrix( :, 6 );
 
-% recode choices and alternatives
+% recode choices and alternatives in running order (simplify later code??)
 for i = 1:numel(allchoices)
     % use negative sign to differentiate old and new codes
     data.alternative(data.alternative == allchoices(i)) = -i;
@@ -31,7 +34,6 @@ for i = 1:numel(allchoices)
         spec.base = i;
     end
 end
-
 
 data.alternative = - data.alternative;
 data.choice = - data.choice;

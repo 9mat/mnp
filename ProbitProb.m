@@ -82,7 +82,7 @@ S_j         = zeros( n.maxChoice - 1, n.maxChoice - 1, n.maxChoice );
 
 for j = 1 : n.maxChoice
     MS = dataR.M(:,:,j,base) * S;
-    S_j(:,:,j) = mychol(MS*MS');
+    S_j(:,:,j) = mychol(MS*MS'); % use a more stable decomposition
 end
      
 S_i = S_j(:,:,dataR.choice);
@@ -93,6 +93,8 @@ a           = repmat(permute(V, [2 3 1]), [1 n.draw 1]);
 w           = zeros( n.con, n.draw, n.maxChoice - 2 );
 ub          = zeros( n.con, n.draw, n.maxChoice - 1 ); 
 
+% In the loops, use temporary matrices aj ad ubj to avoid repeated indexing
+% to matrices a and ub, which can be very costly
 for j = 1 : n.maxChoice - 1        
     aj = repmat(permute(V(j, :), [2 3 1]), [1 n.draw]);
     if j > 1
@@ -254,6 +256,12 @@ if nargout > 1
     clear normpdf_a_ub d_a_s;
 
     % Derivatives of s_n wrt s
+    
+    % Because matrices A and B depends on choices but not on individuals,
+    % first calculate A and B for each choice and replicate them to
+    % all the consumers according to their choices 
+    % (note: in Bolduc, equation (B2) to (B4), A and B depend on consumers
+    % because of individual choice sets, which here assumed away)
     for j = 1 : n.maxChoice
        A_j   = pinv( ...
                         kron( S_j(:,:,j), eye( n.maxChoice - 1 ) ) * dataR.L + ...

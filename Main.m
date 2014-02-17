@@ -88,7 +88,7 @@ ConstructData;
 
 %% Run Estimation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Prepare the log file and display specifications
+% Prepare the log file and display the specifications
 diary( spec.logName );
 diary on;
 display(n);
@@ -100,7 +100,7 @@ start_time = now;
 theta_0                         = rand(n.theta, 1 );
 theta_0(1)                      = -10;
 
-% Run estimation
+%% Run estimation
 RunEstimation;
 
 %% Print Results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
