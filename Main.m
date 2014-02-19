@@ -8,7 +8,7 @@ clear;
 % spec.dataName   = 'Data\data_sh_20stations.csv';
 % spec.dataName   = 'Data\logit_data_salvohuse.csv';
 % spec.dataName   = 'Data\data_sh_full_cons.csv';
-spec.dataName   = 'Data\data_spec1_sub_cleaned.csv';
+spec.dataName   = 'Data\data_spec1_full_cleaned.csv';
 
 % Share data file name
 spec.shareName  = 'Data\data_share_full.txt';
@@ -110,7 +110,8 @@ RunEstimation;
 
 PrintResults;
 
-fprintf(['\n\n\n Wall-clock running time = ' datestr(now - start_time,13) '\n']);
+fprintf('\n\n   Total time      = %.4f seconds\n', toc(start_time));
+fprintf(['   Wall-clock time = ' datestr(now - wall_clock,13) '\n']);
 
 %% Save the results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clearvars -except thetaHat MLE spec n opt;
@@ -119,6 +120,4 @@ save(['Results/' name '.mat']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fprintf('\n\n   Total time      = %.4f seconds\n', toc(start_time));
-fprintf(['   Wall-clock time = ' datestr(now - wall_clock,13) '\n']);
 diary off;

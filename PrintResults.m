@@ -4,6 +4,7 @@
 % thetaHat = [ thetaHath; 2; 3; 4; 5; 6;];
 % thetaHat = [ thetaHat(1:end-1); 0; thetaHat(end); 0; 0; 1;];
 params  = ConstructParams( thetaHat, n, spec );
+params.se = ConstructParams( MLE.se, n, spec );
 
 % Common price parameter ( alpha_0 )
 %   alpha_0 is [ 1 x 1 ]
@@ -42,6 +43,10 @@ omega( 2 : end, 2 : end )   = S * S';
 delta = NaN(n.maxChoice, n.market);
 delta(mask.delta==1) = params.delta;
 delta(spec.base,:) = 0;
+
+se_delta = NaN(size(delta));
+se_delta(mask.delta==1) = params.se.delta;
+se_delta(spec.base,:) = 0;
 clear temp
 
 %% Print Some Prelimiary Informations %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -182,6 +187,7 @@ end
 fprintf( '\n\n\t ****** Choleski Factor of The Differenced Covariance' );
 fprintf( ' Matrix ( base alternative = %1i ) ****** \n\n\n', spec.base );
 
+thetaIndex 	= thetaIndex + n.delta;
 for i = 1 : n.maxChoice - 1
     for j = 1 : n.maxChoice - i
         if ( i == 1 ) && ( j == 1 )
@@ -240,5 +246,6 @@ for h = 1 : n.maxChoice
     clear tempOmega
 end
 
+delta_table = reshape([delta(:) se_delta(:)]', [2*n.maxChoice n.market])';
 fprintf( '\n***** Fixed Effect estimates');
-printmat(delta', 'Fixed Effects', num2str(allmarkets'), 'choice_1 choice_2 choice_3');
+printmat(delta_table, 'Fixed Effects', num2str(allmarkets'), 'choice_1  se_1 choice_2 se_2 choice_3 se_3');
