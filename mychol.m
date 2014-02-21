@@ -23,7 +23,8 @@ end
 if q == 1
     assert(mean(abs(A(1,:))) + mean(abs(A(:,1))) < 1e-5);
     L = mychol(A(2:end, 2:end));
-    L = padarray(L, [1,1], 0 , 'pre');
+    l = size(L,1);
+    L = [zeros(l,1), [zeros(1,l-1); L] ];
     return;
 end
 
