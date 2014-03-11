@@ -7,8 +7,8 @@ clear;
 % spec.dataName   = 'Data\data_fullsample.txt';
 % spec.dataName   = 'Data\data_sh_20stations.csv';
 % spec.dataName   = 'Data\logit_data_salvohuse.csv';
-% spec.dataName   = 'Data\data_sh_full_cons.csv';
-spec.dataName   = 'Data\data_spec1_full.txt';
+spec.dataName   = 'Data\data_sh_full_spec1_cons.csv';
+%spec.dataName   = 'Data\data_spec1_full.txt';
 
 % Share data file name
 spec.shareName  = 'Data\data_share_full.txt';
@@ -24,7 +24,10 @@ n.conGroup  = 2;
 n.prodChar  = 0;
 
 % Number of consumer characteristic variables ( x_i )
-n.conChar   = 6;
+n.conChar   = 10;
+
+% for mfx
+spec.paramType = [0;0;0;0;0;3;2;2;0;2*ones(n.conChar-2,1);1];
 
 % Allow for unobserved product heterogeneity ( xi_jl ) 
 %   0 = no
@@ -39,14 +42,14 @@ spec.unobs  = 0;
 %   1 = yes
 %   2 = no
 spec.constraint = 2;
-spec.boundSize  = 1e-6;
+spec.boundSize  = 1e-9;
 
 % Base alternative
 spec.base       = 3;
 spec.scale      = 1 + (spec.base == 1); % not ready to change to other scale yet
 
 % Number of random draws 
-n.draw          = 100;
+n.draw          = 1000;
 
 % Random draw type
 %   1 = use pseudo-random draws
@@ -110,10 +113,17 @@ PrintResults;
 fprintf(['\n\n\n Wall-clock running time = ' datestr(now - start_time,13) '\n']);
 
 %% Save the results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clearvars -except thetaHat MLE spec n opt;
-[~,name,~] = fileparts(spec.logName);
-save(['Results/' name '.mat']);
+clearvars -except thetaHat MLE spec n opt meanData paramType;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% kk
+[mfx, P, se_mfx, se_P] = marginalEffect(thetaHat, meanData, n, spec, MLE.cov);
+fprintf('\n\nMarginal effects at means and SE\n');
+display([mfx sqrt(diag(se_mfx))]);
+fprintf('\n\nChoice Probability at means and Se\n'); 
+display([P sqrt(diag(se_P))]);
+
+[~,name,~] = fileparts(spec.logName);
+save(['Results/' name '.mat']);
 
 diary off;

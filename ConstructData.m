@@ -106,4 +106,22 @@ for k = 1:n.choiceset
     dataR{k}.pick = pick.theta;
 end
 
+%% Calculate means to be used for marginal effects
+meanData = ones(n.maxChoice, numel(spec.paramType));
+
+for i = 1:size(meanData,2)
+    if spec.paramType(i) == 1 || spec.paramType(i) == 2
+        meanData(:,i) = mean(dataMatrix(dataMatrix(:,4)==spec.base,i));
+    elseif spec.paramType(i) == 3 || spec.paramType(i) == 4
+        for j = 1:n.maxChoice
+            meanData(j,i) = mean(dataMatrix(dataMatrix(:,4) == j,i));
+        end
+    end
+    
+    meanData(:,3) = n.maxChoice; % choice set size
+    meanData(:,4) = 1:n.maxChoice; % alternative
+end
+
+%%
+
 clear dataMatrix conID alternative choicesetcode belong index1;
