@@ -7,8 +7,8 @@ clear;
 % spec.dataName   = 'Data\data_fullsample.txt';
 % spec.dataName   = 'Data\data_sh_20stations.csv';
 % spec.dataName   = 'Data\logit_data_salvohuse.csv';
-% spec.dataName   = 'Data\data_sh_full_cons.csv';
-spec.dataName   = 'Data\data_spec1_full_cleaned.csv';
+spec.dataName   = 'Data\data_sh_full_balanced.csv';
+% spec.dataName   = 'Data\data_spec1_full_cleaned.csv';
 
 % Share data file name
 spec.shareName  = 'Data\data_share_full.txt';
@@ -18,13 +18,13 @@ spec.shareName  = 'Data\data_share_full.txt';
 spec.logName    = ['Log\' name '.' datestr(now,'yyyymmdd.HHMM') '.log'];
 
 % Number of consumer groups ( R )
-n.conGroup  = 2;
+n.conGroup  = 0;
 
 % Number of product characteristic variables ( x_jl )
 n.prodChar  = 0;
 
 % Number of consumer characteristic variables ( x_i )
-n.conChar   = 6;
+n.conChar   = 9;
 
 % Allow for unobserved product heterogeneity ( xi_jl ) 
 %   0 = no
@@ -78,7 +78,7 @@ opt.gradObj     = 'on';
 opt.gradConstr  = 'off';
 
 % KNITRO/fmincon specific optimization options
-opt.algorithm   = 'interior-point';   % 'active-set' or 'interior-point'
+opt.algorithm   = 'active-set';   % 'active-set' or 'interior-point'
 
 %% Logging and timming
 diary(spec.logName);

@@ -3,7 +3,7 @@ function [ probChosen, d_probChosen ] = ProbitProb( theta, dataR, n, spec )
 %% Construct Parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % theta = [ theta; 2; 3; 4; 5; 6;];
 % theta = [ theta(1:end-2); theta(end-1); theta(end); 7; 4; 1;];
-params 	= ConstructParams( theta, n, dataR.spec );
+params 	= ConstructParams( theta, dataR.n, dataR.spec );
 base    = dataR.spec.base;
 
 % Common price parameter ( alpha_0 )

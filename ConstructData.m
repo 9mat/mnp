@@ -9,6 +9,11 @@ clear tempData
 % remove data with only 1 alternative
 dataMatrix(dataMatrix(:,3) < 2, :) = [];
 
+% for the 2160 data, station 141, 172 noone chooses the first alternative,
+% which is the base alternative, thus here we simply throw them away
+dataMatrix(dataMatrix(:,1) == 141, :) = [];
+dataMatrix(dataMatrix(:,1) == 172, :) = [];
+
 %% Separate data according to choice sets
 
 conID           = dataMatrix( :, 2 );
@@ -86,7 +91,8 @@ mask.S(mask.S == 1) = 1:n.S;
 
 for k = 1:n.choiceset
     % Decode the choice set code to know which alternatives are missing
-    missing = dec2bin(uniquecode(k)) == '0';
+    missing = true(1,n.maxChoice);
+    missing(dec2bin(uniquecode(k)) == '1') = false;
     
     pick.beta_1 = mask.beta_1;
     pick.beta_2 = mask.beta_2;
