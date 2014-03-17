@@ -1,10 +1,13 @@
-function [ probChosen, d_probChosen ] = ProbitProb( theta, dataR, n, spec )
+function [ probChosen, d_probChosen ] = ProbitProb( theta, dataR )
+
+spec = dataR.spec;
+n = dataR.n;
 
 %% Construct Parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % theta = [ theta; 2; 3; 4; 5; 6;];
 % theta = [ theta(1:end-2); theta(end-1); theta(end); 7; 4; 1;];
-params 	= ConstructParams( theta, dataR.n, dataR.spec );
-base    = dataR.spec.base;
+params 	= ConstructParams( theta, n, spec );
+base    = spec.base;
 
 % Common price parameter ( alpha_0 )
 %   alpha_0 is [ 1 x 1 ]
@@ -126,7 +129,7 @@ end
 
 %% Compute Derivatives %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Mn = permute(dataR.M(:, :, dataR.choice, dataR.spec.base), [2 3 1]);
+Mn = permute(dataR.M(:, :, dataR.choice, spec.base), [2 3 1]);
 
 if nargout > 1     
             

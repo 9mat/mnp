@@ -6,21 +6,37 @@ dataMatrix      = tempData.data;
 dataHeader      = tempData.colheaders;
 clear tempData
 
+% Share data
+tempData        = importdata( spec.shareName );
+shareMatrix     = tempData.data;
+clear tempData;
+
 % remove data with only 1 alternative
 dataMatrix(dataMatrix(:,3) < 2, :) = [];
 
 % for the 2160 data, station 141, 172 noone chooses the first alternative,
 % which is the base alternative, thus here we simply throw them away
-dataMatrix(dataMatrix(:,1) == 141, :) = [];
-dataMatrix(dataMatrix(:,1) == 172, :) = [];
+% dataMatrix(dataMatrix(:,1) == 141, :) = [];
+% dataMatrix(dataMatrix(:,1) == 172, :) = [];
+% shareMatrix(shareMatrix(:,1) == 141, :) = [];
+% shareMatrix(shareMatrix(:,1) == 172, :) = [];
+% 
+
+shareHat = shareMatrix(:,2:end);
+shareHat(:,spec.base) = [];
+shareHat(isnan(shareHat)) = [];
 
 %% Separate data according to choice sets
+
 
 conID           = dataMatrix( :, 2 );
 alternative     = dataMatrix( :, 4 );
 marketID        = dataMatrix( :, 1 );
 
-uniqueID        = sort(unique(conID));
+[allID, indexID]  = unique(conID);
+[uniqueID, sortID] = sort(allID);
+indexID = indexID(sortID);
+marketIdByCon = marketID(indexID);
 n.maxChoice     = max(alternative);
 n.con           = numel(uniqueID);
 
@@ -32,14 +48,26 @@ for i = 1:n.con
     choicesetcode(index1) = bin2dec(num2str(choiceset));
 end
 
-uniquecode = unique(choicesetcode);
+uniquecode = sort(unique(choicesetcode));
 n.choiceset = numel(uniquecode);
 
 %% Construct the dataR structure for each choice set
 for k = 1:n.choiceset
     belong = choicesetcode == uniquecode(k);
     [dataR{k}, data{k}] = ConstructDataGroup(dataMatrix(belong,:),n,spec);
+    
+    missing = true(1,n.maxChoice);
+    missing(dec2bin(uniquecode(k)) == '1') = false;
+    
+    for j = 1:n.maxChoice
+        if j ~= spec.base && ~missing(j)
+            dataMatrix(belong, 5) = j;
+            [dataS{k,j}, ~] = ConstructDataGroup(dataMatrix(belong,:),n,spec);
+            dataS{k,j}.draw = dataR{k}.draw;
+        end
+    end
 end
+
 
 allmarkets = sort(unique(marketID));
 n.market = numel(allmarkets);
@@ -127,13 +155,36 @@ for k = 1:n.choiceset
     
     pick.theta = [pick.theta;pick.beta_1(:)+temp];
     temp = temp + n.beta_1;
-
+    
     pick.theta = [pick.theta;pick.beta_2(:)+temp];
     temp = temp + n.beta_2;
-
+    
     pick.theta = [pick.theta;pick.delta(:)+temp];
     temp = temp + n.delta;
-
+    
     pick.theta = [pick.theta;pick.S(:)+temp];
     dataR{k}.pick = pick.theta;
+    dataR{k}.pick_delta = pick.delta;
+    for j = 1:n.maxChoice
+        if ~isempty(dataS{k,j})
+            dataS{k,j}.pick = pick.theta;
+        end
+    end
 end
+
+%% Calculate means to be used for marginal effects
+meanData = ones(n.maxChoice, numel(spec.paramType));
+
+for i = 1:size(meanData,2)
+    if spec.paramType(i) == 1 || spec.paramType(i) == 2
+        meanData(:,i) = mean(dataMatrix(dataMatrix(:,4)==spec.base,i));
+    elseif spec.paramType(i) == 3 || spec.paramType(i) == 4
+        for j = 1:n.maxChoice
+            meanData(j,i) = mean(dataMatrix(dataMatrix(:,4) == j,i));
+        end
+    end
+    
+    meanData(:,3) = n.maxChoice; % choice set size
+    meanData(:,4) = 1:n.maxChoice; % alternative
+end
+

@@ -25,6 +25,7 @@ data.choice         = dataMatrix( :, 5 );
 data.price          = dataMatrix( :, 6 );
 
 % recode choices and alternatives in running order (simplify later code??)
+dataR.mapChoice = sort(allchoices);
 for i = 1:numel(allchoices)
     % use negative sign to differentiate old and new codes
     data.alternative(data.alternative == allchoices(i)) = -i;
@@ -38,10 +39,12 @@ end
 data.alternative = - data.alternative;
 data.choice = - data.choice;
 
-% recode market ID
-allmarkets = sort(unique(data.marketID));
-for i = 1:numel(allmarkets)
-    data.marketID(data.marketID == allmarkets(i)) = -i;
+dataR.allConID = sort(unique(data.conID));
+
+%recode market ID
+dataR.allmarkets = sort(unique(data.marketID));
+for i = 1:numel(dataR.allmarkets)
+    data.marketID(data.marketID == dataR.allmarkets(i)) = -i;
 end
 data.marketID = -data.marketID;
 

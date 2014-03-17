@@ -6,7 +6,8 @@ ub  = ones( n.theta, 1 ) * 200;
 lb  = ones( n.theta, 1 ) * -200;
 
 % Define objective function
-obj = @(x) LogLike( x, dataR, spec );
+obj = @(x) LogLike( x, dataR );
+constraints = @(x) ShareConstraints(x,dataS,marketIdByCon,n,shareHat,mask);
 
 % Run Optimization
 tic
@@ -31,6 +32,9 @@ if spec.solver == 1
                         
     elseif spec.constraint == 2
         
+%         [ thetaHat, MLE.value ] = ...
+%                 ktrlink( obj, theta_0, [], [], [], [], lb, ub, ...
+%                          constraints, optOption );
         [ thetaHat, MLE.value ] = ...
                 ktrlink( obj, theta_0, [], [], [], [], lb, ub, ...
                          [], optOption );

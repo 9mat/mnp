@@ -7,15 +7,16 @@ clear;
 % spec.dataName   = 'Data\data_fullsample.txt';
 % spec.dataName   = 'Data\data_sh_20stations.csv';
 % spec.dataName   = 'Data\logit_data_salvohuse.csv';
-spec.dataName   = 'Data\data_sh_full_balanced.csv';
-% spec.dataName   = 'Data\data_spec1_full_cleaned.csv';
+spec.dataName   = 'Data\data_sh_full_cityid.csv';
+%spec.dataName   = 'Data\data_spec1_full_cleaned.csv';
 
-% Share data file name
-spec.shareName  = 'Data\data_share_full.txt';
 
 % Log file name
-[~,name,~] = fileparts(spec.dataName);
+[~,name,ext] = fileparts(spec.dataName);
 spec.logName    = ['Log\' name '.' datestr(now,'yyyymmdd.HHMM') '.log'];
+
+% Share data file name
+spec.shareName  = ['Data\share_' name ext];
 
 % Number of consumer groups ( R )
 n.conGroup  = 0;
@@ -25,6 +26,9 @@ n.prodChar  = 0;
 
 % Number of consumer characteristic variables ( x_i )
 n.conChar   = 9;
+
+% for mfx
+spec.paramType = [0;0;0;0;0;3;2*ones(n.conChar,1)];
 
 % Allow for unobserved product heterogeneity ( xi_jl ) 
 %   0 = no
@@ -46,7 +50,7 @@ spec.base       = 1;
 spec.scale      = 1 + (spec.base == 1); % not ready to change to other scale yet
 
 % Number of random draws 
-n.draw          = 10;
+n.draw          = 400;
 
 % Random draw type
 %   1 = use pseudo-random draws
@@ -73,12 +77,12 @@ opt.maxFunEvals = 1e+10;
 opt.display     = 'iter';
 opt.tolFun      = 1e-8;
 opt.tolCon      = 1e-8;
-opt.tolX        = 1e-15;
+opt.tolX        = 1e-18;
 opt.gradObj     = 'on';
-opt.gradConstr  = 'off';
+opt.gradConstr  = 'on';
 
 % KNITRO/fmincon specific optimization options
-opt.algorithm   = 'active-set';   % 'active-set' or 'interior-point'
+opt.algorithm   = 'interior-point';   % 'active-set' or 'interior-point'
 
 %% Logging and timming
 diary(spec.logName);
@@ -101,7 +105,7 @@ ConstructData;
 
 % Start value
 theta_0                         = ones(n.theta, 1 );
-theta_0(1)                      = -10;
+theta_0(1)                      = -100;
 
 %% Run estimation
 RunEstimation;
@@ -114,8 +118,9 @@ fprintf('\n\n   Total time      = %.4f seconds\n', toc(start_time));
 fprintf(['   Wall-clock time = ' datestr(now - wall_clock,13) '\n']);
 
 %% Save the results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clearvars -except thetaHat MLE spec n opt;
+clearvars -except thetaHat MLE spec n opt meanData;
 [~,name,~] = fileparts(spec.logName);
+[ mfx, P, se_mfx, se_P] = marginalEffect(thetaHat, meanData, n, spec, MLE.cov);
 save(['Results/' name '.mat']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
