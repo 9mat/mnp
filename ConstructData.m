@@ -7,7 +7,19 @@ dataHeader      = tempData.colheaders;
 clear tempData
 
 % remove data with only 1 alternative
-dataMatrix(dataMatrix(:,3) < 2, :) = [];
+% dataMatrix(dataMatrix(:,3) < 2, :) = [];
+
+% for the 2160 data, station 141, 172 noone chooses the first alternative,
+% which is the base alternative, thus here we simply throw them away
+% dataMatrix(dataMatrix(:,1) == 141, :) = [];
+% dataMatrix(dataMatrix(:,1) == 172, :) = [];
+
+% create station dummies
+% marketID = sort(unique(dataMatrix(:,1)));
+% for i =2:numel(marketID)
+%     dataMatrix(:,end+1) = dataMatrix(:,1) == marketID(i);
+%     dataHeader{end+1} = ['dvstation' num2str(marketID(i))];
+% end
 
 %% Separate data according to choice sets
 
@@ -64,7 +76,7 @@ n.beta_1 = sum(mask.beta_1(:));
 n.beta_2 = sum(mask.beta_2(:));
 n.beta = n.beta_1 + n.beta_2 + 1 + n.conGroup;
 n.S = sum(mask.S(:));
-n.maxChoice = max(dataMatrix(:,4));
+n.maxChoice = numel(unique(dataMatrix(:,4)));
 n.theta = 1 + n.conGroup + n.beta_1 + n.beta_2 + n.S;
 
 % Index the estimable parameters in a running order
@@ -122,6 +134,7 @@ for i = 1:size(meanData,2)
     meanData(:,4) = 1:n.maxChoice; % alternative
 end
 
+n.mfx = sum(spec.paramType > 0) + (n.maxChoice-1)*sum(spec.paramType > 2);
 %%
 
-clear dataMatrix conID alternative choicesetcode belong index1;
+clear conID alternative belong index1;

@@ -4,8 +4,10 @@ function [ L ] = mychol( A )
 %   singular (but still positive semidefinite). 
 
 % Base case: a scalar
-if size(A,1) == 1
-    L = sqrt(A(1,1));
+if isscalar(A)
+    assert(A > -1e-6);
+    if A < 0; A = 0; end;
+    L = sqrt(A);
     return;
 end
 

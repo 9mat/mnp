@@ -7,7 +7,7 @@ clear;
 % spec.dataName   = 'Data\data_fullsample.txt';
 % spec.dataName   = 'Data\data_sh_20stations.csv';
 % spec.dataName   = 'Data\logit_data_salvohuse.csv';
-spec.dataName   = 'Data\data_sh_full_spec1_cons.csv';
+spec.dataName   = 'Data\data_sh_full_cons.csv';
 %spec.dataName   = 'Data\data_spec1_full.txt';
 
 % Share data file name
@@ -18,7 +18,7 @@ spec.shareName  = 'Data\data_share_full.txt';
 spec.logName    = ['Log\' name '.' datestr(now,'yyyymmdd.HHMM') '.log'];
 
 % Number of consumer groups ( R )
-n.conGroup  = 2;
+n.conGroup  = 0;
 
 % Number of product characteristic variables ( x_jl )
 n.prodChar  = 0;
@@ -27,7 +27,7 @@ n.prodChar  = 0;
 n.conChar   = 10;
 
 % for mfx
-spec.paramType = [0;0;0;0;0;3;2;2;0;2*ones(n.conChar-2,1);1];
+spec.paramType = [0;0;0;0;0;3;0;2*ones(n.conChar-2,1);1];
 
 % Allow for unobserved product heterogeneity ( xi_jl ) 
 %   0 = no
@@ -49,7 +49,7 @@ spec.base       = 3;
 spec.scale      = 1 + (spec.base == 1); % not ready to change to other scale yet
 
 % Number of random draws 
-n.draw          = 1000;
+n.draw          = 100;
 
 % Random draw type
 %   1 = use pseudo-random draws
@@ -81,7 +81,7 @@ opt.gradObj     = 'on';
 opt.gradConstr  = 'on';
 
 % KNITRO/fmincon specific optimization options
-opt.algorithm   = 'interior-point';   % 'active-set' or 'interior-point'
+opt.algorithm   = 'active-set';   % 'active-set' or 'interior-point'
 
 %% Log
 
@@ -100,8 +100,8 @@ display(opt);
 start_time = now;
 
 % Start value
-theta_0                         = rand(n.theta, 1 );
-theta_0(1)                      = -10;
+theta_0                         = -3*rand(n.theta, 1 );
+theta_0(1)                      = -100;
 
 %% Run estimation
 RunEstimation;
@@ -113,15 +113,29 @@ PrintResults;
 fprintf(['\n\n\n Wall-clock running time = ' datestr(now - start_time,13) '\n']);
 
 %% Save the results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clearvars -except thetaHat MLE spec n opt meanData paramType;
+clearvars -except dataMatrix dataR dataHeader choicesetcode thetaHat MLE spec n opt meanData paramType;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% kk
-[mfx, P, se_mfx, se_P] = marginalEffect(thetaHat, meanData, n, spec, MLE.cov);
-fprintf('\n\nMarginal effects at means and SE\n');
-display([mfx sqrt(diag(se_mfx))]);
-fprintf('\n\nChoice Probability at means and Se\n'); 
-display([P sqrt(diag(se_P))]);
+tic;[mfx, P, se_mfx, se_P] = marginalEffect(thetaHat, meanData, n, spec, MLE.cov);toc;
+tic;[ amfx, se_amfx, aP, se_aP ] = AME( dataMatrix, dataR, choicesetcode, thetaHat, n, spec, MLE.cov ); toc;
+%%
+mfxHeader = {};
+for i = 1:numel(spec.paramType)
+    if spec.paramType(i) == 0; continue; end;
+    if spec.paramType(i) < 3
+        mfxHeader{end+1} = dataHeader{i};
+    else
+        for j=1:n.maxChoice
+            mfxHeader{end+1} = [dataHeader{i} num2str(j)];
+        end
+    end
+end
+
+mfxHeader = repmat(mfxHeader, 1, n.maxChoice);
+%%
+printmat([mfx, se_mfx, abs(mfx./se_mfx)], 'Marginal Effects at Means', strjoin(mfxHeader), 'MEM SE t');
+printmat([amfx, se_amfx, abs(amfx./se_amfx)], 'Average Marginal Effects', strjoin(mfxHeader), 'AME SE t');
 
 [~,name,~] = fileparts(spec.logName);
 save(['Results/' name '.mat']);

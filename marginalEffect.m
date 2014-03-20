@@ -1,4 +1,5 @@
-function [ mfx, P, se_mfx, se_P] = marginalEffect(thetaHat, meanData, n, spec, V_theta)
+function [ mfx_full, P_full, se_mfx, se_P, d_mfx_d_theta_full, d_P_d_theta_full] = ...
+    marginalEffect(thetaHat, meanData, n, spec, V_theta)
 %MFX Summary of this function goes here
 %   Detailed explanation goes here
 %   paramType = 0 --> no marginal effect
@@ -7,74 +8,70 @@ function [ mfx, P, se_mfx, se_P] = marginalEffect(thetaHat, meanData, n, spec, V
 %   paramType = 3 --> continuous and product dependent
 %   paramType = 4 --> binary and product dependent
 
-data1 = [];
-data2 = [];
-epsilon = 1e-3;
+choiceset = sort(unique(meanData(:,4)));
+nchoice = numel(choiceset);
+ncon = numel(unique(meanData(:,2)));
+nmfx = sum(spec.paramType > 0) + (nchoice-1)*sum(spec.paramType > 2);
+
+data1 = repmat(meanData,nmfx,1);
+data2 = data1;
+epsilon = 1e-5;
 dx = [];
 
+index = 1:size(meanData,1);
 for i = 1:numel(spec.paramType)
     if spec.paramType(i) == 0; continue; end
     
     if spec.paramType(i) == 1 || spec.paramType(i) == 2
-        x1 = meanData;
-        x2 = meanData;
-        
         if spec.paramType(i) == 1
-            x1(:,i) = x1(:,i)*(1-epsilon);
-            x2(:,i) = x2(:,i)*(1+epsilon);
+            data1(index,i) = meanData(:,i)*(1-epsilon);
+            data2(index,i) = meanData(:,i)*(1+epsilon);
         else
-            x1(:,i) = 0;
-            x2(:,i) = 1;
+            data1(index,i) = 0;
+            data2(index,i) = 1;
         end
         
-        data1(end+1:end+n.maxChoice,:) = x1;
-        data2(end+1:end+n.maxChoice,:) = x2;
-        
-        dx(end+1) = mean(x2(:,i) - x1(:,i));
+        dx = [dx;data2(index(1:nchoice:end),i) - data1(index(1:nchoice:end),i)];
+        index = index + nchoice*ncon;
         continue;
     end
     
-    for j=1:n.maxChoice
-        x1 = meanData;
-        x2 = meanData;
-        
+    for j=1:nchoice
         if spec.paramType(i) == 3
-            x1(j,i) = x1(j,i)*(1-epsilon);
-            x2(j,i) = x2(j,i)*(1+epsilon);
+            data1(index(j:nchoice:end),i) = meanData(j:nchoice:end,i)*(1-epsilon);
+            data2(index(j:nchoice:end),i) = meanData(j:nchoice:end,i)*(1+epsilon);
         else
-            x1(j,i) = 0;
-            x2(j,i) = 1;
+            data1(index(j:nchoice:end),i) = 0;
+            data2(index(j:nchoice:end),i) = 1;
         end
         
-        data1(end+1:end+n.maxChoice,:) = x1;
-        data2(end+1:end+n.maxChoice,:) = x2;
-        
-        dx(end+1) = x2(j,i) - x1(j,i);
+        dx = [dx;data2(index(j:nchoice:end),i) - data1(index(j:nchoice:end),i)];
+        index = index + nchoice*ncon;
     end
 end
 
 m = size(data1, 1);
-data1 = repmat(data1, n.maxChoice, 1);
-data2 = repmat(data2, n.maxChoice, 1);
-data3 = repmat(meanData, n.maxChoice, 1);
-dx = repmat(dx(:), n.maxChoice, 1);
-for j = 1:n.maxChoice
-    data1((j-1)*m+1:j*m,5) = j;
-    data2((j-1)*m+1:j*m,5) = j;
-    data3((j-1)*n.maxChoice+1:j*n.maxChoice,5) = j;
+data1 = repmat(data1, nchoice, 1);
+data2 = repmat(data2, nchoice, 1);
+data3 = repmat(meanData, nchoice, 1);
+dx = repmat(dx(:), nchoice, 1);
+for j = 1:nchoice
+    data1((j-1)*m+1:j*m,5) = choiceset(j);
+    data2((j-1)*m+1:j*m,5) = choiceset(j);
+    data3((j-1)*nchoice+1:j*nchoice,5) = choiceset(j);
 end
 
 data = [data1; data2; data3];
-conID = repmat(1:2*m+n.maxChoice,n.maxChoice,1);
+conID = repmat(1:2*m+nchoice*ncon, nchoice, 1);
 data(:,2) = conID(:);
 
 n.con = numel(unique(data(:,2)));
-n.draw = 10000;
+n.draw = 10;
 [dataR, ~] = ConstructDataGroup(data, n, spec);
 dataR.draw.uni = repmat(dataR.draw.uni(1,:,:), [n.con 1 1]);
-P = ProbitProb(thetaHat, dataR, n, spec);
+P = ProbitProb(thetaHat, dataR, dataR.n, dataR.spec);
 
-m = (n.con - n.maxChoice)/2;
+m = (n.con - nchoice*ncon)/2;
 P1 = P(1:m);
 P2 = P(m+1:2*m);
 
@@ -91,8 +88,8 @@ d_theta = diag(thetaHatPlus) - diag(thetaHatMinus);
 P_plus = zeros(n.con, k);
 P_minus = zeros(n.con, k);
 for i = 1:k
-    P_plus(:,i) = ProbitProb(thetaHatPlus(:,i), dataR, n, spec);
-    P_minus(:,i) = ProbitProb(thetaHatMinus(:,i), dataR, n, spec);
+    P_plus(:,i) = ProbitProb(thetaHatPlus(:,i), dataR, dataR.n, dataR.spec);
+    P_minus(:,i) = ProbitProb(thetaHatMinus(:,i), dataR, dataR.n, dataR.spec);
 end
 
 d_P_d_theta = bsxfun(@rdivide,P_plus - P_minus, d_theta');
@@ -102,7 +99,29 @@ d_P1_d_theta = d_P_d_theta(m+1:2*m,:);
 d_P_d_theta = d_P_d_theta(2*m+1:end,:);
 d_mfx_d_theta = bsxfun(@rdivide, d_P2_d_theta - d_P1_d_theta, dx);
 
-se_mfx = d_mfx_d_theta*V_theta*d_mfx_d_theta';
-se_P = d_P_d_theta*V_theta*d_P_d_theta';
+se_mfx = sqrt(diag(d_mfx_d_theta*V_theta*d_mfx_d_theta'));
+se_P = sqrt(diag(d_P_d_theta*V_theta*d_P_d_theta'));
+
+
+mask = 0;
+for i = 1:numel(spec.paramType)
+    if spec.paramType(i) == 1 || spec.paramType(i) == 2
+        mask(end+1) = mask(end) + 1;
+    elseif spec.paramType(i) == 3 || spec.paramType(i) == 4
+        mask(end+1:end+nchoice) = mask(end) + choiceset;
+    end
+end
+mask(1) = [];
+mask = bsxfun(@plus, mask, (0:nchoice-1)'*n.mfx)';
+mask = mask(:);
+
+mfx_full = zeros(n.mfx*n.maxChoice, ncon);
+mfx_full(mask, :) = reshape(mfx, ncon, nmfx*nchoice)';
+P_full = zeros(n.maxChoice, ncon);
+P_full(choiceset,:) = reshape(P, ncon, nchoice)';
+d_mfx_d_theta_full = zeros(n.mfx*n.maxChoice, k, ncon);
+d_mfx_d_theta_full(mask,:,:) = permute(reshape(d_mfx_d_theta, [ncon, nmfx*nchoice, k]), [2,3,1]);
+d_P_d_theta_full = zeros(n.maxChoice, k, ncon);
+d_P_d_theta_full(choiceset,:,:) = permute(reshape(d_P_d_theta, [ncon, nchoice, k]), [2,3,1]);
 end
 
