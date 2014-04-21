@@ -24,7 +24,7 @@ n.conGroup  = 0;
 n.prodChar  = 0;
 
 % Number of consumer characteristic variables ( x_i )
-n.conChar   = 10;
+n.conChar   = 1;
 
 % for mfx
 spec.paramType = [0;0;0;0;0;3;0;2*ones(n.conChar-2,1);1];
@@ -68,7 +68,7 @@ rand( 'seed', 12345 );
 %   1 = use KNITRO 
 %   2 = use MATLAB fminsearch
 %   3 = use MATLAB fmincon
-spec.solver     = 1;
+spec.solver     = 4;
 
 % Common optimization options
 opt.maxIter     = 50000;

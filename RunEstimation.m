@@ -81,6 +81,19 @@ elseif spec.solver == 3
                 fmincon( obj, theta_0, [], [], [], [], lb, ub, ...
                          [], optOption );
     end
+elseif spec.solver == 4
+    funcs.objective = obj;
+    funcs.gradient = @(x) LogLikeGrad(x, dataR, spec);
+    
+    options.lb = lb;
+    options.ub = ub;
+    
+    options.ipopt.hessian_approximation = 'limited-memory';
+    options.ipopt.derivative_test = 'first-order';
+    options.ipopt.derivative_test_perturbation = 1e-5;
+    
+    [ thetaHat, info ] = ipopt(theta_0, funcs, options);
+    MLE.value = obj(thetaHat);
 end
 
 % Estimation time in seconds
