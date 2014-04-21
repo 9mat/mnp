@@ -64,7 +64,7 @@ n.mkt       = length( unique( data.marketID ) );
 n.con       = length( unique( data.conID ) );
 
 % Largest number of choices
-n.maxChoice = max( data.choiceSetSize );
+n.maxChoice = numel( unique(data.alternative) );
 
 %% Number of parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

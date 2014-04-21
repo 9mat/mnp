@@ -12,7 +12,7 @@ d_P_d_theta = zeros(n.maxChoice, numel(thetaHat), n.con);
 uniquecode = sort(unique(choicesetcode));
 nchoiceset = numel(unique(choicesetcode));
 for i = 1:numel(conID)
-    fprintf('   Calculating mfx for cperson %4d\n',i);
+    fprintf('   Calculating mfx for person %4d\n',i);
     index = conID(i) == dataMatrix(:,2);
     k = find(choicesetcode(find(index,1,'first'))==uniquecode);
     [ mfx_i, P_i, ~, ~, d_mfx_d_theta_i, d_P_d_theta_i] = ...
