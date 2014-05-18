@@ -7,7 +7,7 @@ clear;
 % spec.dataName   = 'Data\data_fullsample.txt';
 % spec.dataName   = 'Data\data_sh_20stations.csv';
 % spec.dataName   = 'Data\logit_data_salvohuse.csv';
-spec.dataName   = 'Data\data_sh_full_cleaned.csv';
+spec.dataName   = 'Data\data_sh_full_cityid.csv';
 %spec.dataName   = 'Data\data_spec1_full_cleaned.csv';
 
 
@@ -50,7 +50,7 @@ spec.base       = 1;
 spec.scale      = 1 + (spec.base == 1); % not ready to change to other scale yet
 
 % Number of random draws 
-n.draw          = 100;
+n.draw          = 400;
 
 % Random draw type
 %   1 = use pseudo-random draws
@@ -72,7 +72,7 @@ rng('default');
 spec.solver     = 1;
 
 % Common optimization options
-opt.maxIter     = 2000;
+opt.maxIter     = 20000;
 opt.maxFunEvals = 1e+10;
 opt.display     = 'iter';
 opt.tolFun      = 1e-8;
