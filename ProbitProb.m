@@ -111,7 +111,6 @@ for j = 1 : n.maxChoice - 1
 end
 clear aj ubj;
 
-ub(ub==0) = eps;
 probChosen = prod(ub,3);
 
 if nargout == 1

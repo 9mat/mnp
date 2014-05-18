@@ -2,8 +2,8 @@
 %% Run Estimation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Bounds on all parameters
-ub  = ones( n.theta, 1 ) * 200;    
-lb  = ones( n.theta, 1 ) * -200;
+ub  = ones( n.theta, 1 ) * 30;    
+lb  = ones( n.theta, 1 ) * -30;
 
 % Define objective function
 obj = @(x) LogLike( x, dataR, spec );
@@ -90,7 +90,8 @@ elseif spec.solver == 4
     
     options.ipopt.hessian_approximation = 'limited-memory';
     options.ipopt.derivative_test = 'first-order';
-    options.ipopt.derivative_test_perturbation = 1e-5;
+    options.ipopt.max_iter = 500;
+%     options.ipopt.derivative_test_perturbation = 1e-5;
     
     [ thetaHat, info ] = ipopt(theta_0, funcs, options);
     MLE.value = obj(thetaHat);

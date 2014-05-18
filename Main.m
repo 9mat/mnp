@@ -7,7 +7,7 @@ clear;
 % spec.dataName   = 'Data\data_fullsample.txt';
 % spec.dataName   = 'Data\data_sh_20stations.csv';
 % spec.dataName   = 'Data\logit_data_salvohuse.csv';
-spec.dataName   = 'Data\data_sh_full_cons.csv';
+spec.dataName   = 'Data\data_sh_full_23X.csv';
 %spec.dataName   = 'Data\data_spec1_full.txt';
 
 % Share data file name
@@ -24,7 +24,7 @@ n.conGroup  = 0;
 n.prodChar  = 0;
 
 % Number of consumer characteristic variables ( x_i )
-n.conChar   = 1;
+n.conChar   = 15;
 
 % for mfx
 spec.paramType = [0;0;0;0;0;3;0;2*ones(n.conChar-2,1);1];
@@ -68,7 +68,7 @@ rand( 'seed', 12345 );
 %   1 = use KNITRO 
 %   2 = use MATLAB fminsearch
 %   3 = use MATLAB fmincon
-spec.solver     = 4;
+spec.solver     = 1;
 
 % Common optimization options
 opt.maxIter     = 50000;
@@ -100,8 +100,8 @@ display(opt);
 start_time = now;
 
 % Start value
-theta_0                         = -3*rand(n.theta, 1 );
-theta_0(1)                      = -100;
+theta_0                         = -rand(n.theta, 1 );
+theta_0(1)                      = -10;
 
 %% Run estimation
 RunEstimation;
