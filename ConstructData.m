@@ -16,11 +16,11 @@ dataMatrix(dataMatrix(:,3) < 2, :) = [];
 
 % for the 2160 data, station 141, 172 noone chooses the first alternative,
 % which is the base alternative, thus here we simply throw them away
-% dataMatrix(dataMatrix(:,1) == 141, :) = [];
-% dataMatrix(dataMatrix(:,1) == 172, :) = [];
-% shareMatrix(shareMatrix(:,1) == 141, :) = [];
-% shareMatrix(shareMatrix(:,1) == 172, :) = [];
-% 
+dataMatrix(dataMatrix(:,1) == 141, :) = [];
+dataMatrix(dataMatrix(:,1) == 172, :) = [];
+shareMatrix(shareMatrix(:,1) == 141, :) = [];
+shareMatrix(shareMatrix(:,1) == 172, :) = [];
+
 
 shareHat = shareMatrix(:,2:end);
 shareHat(:,spec.base) = [];
@@ -35,11 +35,14 @@ marketID        = dataMatrix( :, 1 );
 
 [allID, indexID]  = unique(conID);
 [uniqueID, sortID] = sort(allID);
-indexID = indexID(sortID);
-marketIdByCon = marketID(indexID);
+indexID         = indexID(sortID);
+marketIdByCon   = marketID(indexID);
 n.maxChoice     = max(alternative);
+n.marketCount   = histc(marketID, sort(unique(marketID)));
 n.con           = numel(uniqueID);
+mapConID(uniqueID) = 1:n.con;
 
+% !!! Assumption: no redundant alternative 
 choicesetcode   = zeros(size(conID));
 for i = 1:n.con
     index1 = (conID == uniqueID(i));
@@ -187,4 +190,6 @@ for i = 1:size(meanData,2)
     meanData(:,3) = n.maxChoice; % choice set size
     meanData(:,4) = 1:n.maxChoice; % alternative
 end
+n.mfx = sum(spec.paramType > 0) + (n.maxChoice-1)*sum(spec.paramType > 2);
+
 

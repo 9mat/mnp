@@ -303,6 +303,7 @@ if nargout > 1
         mean( bsxfun( @times, d_L_s_i, ...
                       reshape( probChosen, [ 1 n.con n.draw ] ) ), 3 ); 
     d_L_s_i( d_L_s_i == Inf )   = 1e+10;
+    d_L_s_i( isnan(d_L_s_i) )   = 0;
     
     clear normpdf_a_ub d_a_s;
 

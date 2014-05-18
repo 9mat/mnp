@@ -1,4 +1,4 @@
-function [ eq, neq, deq, dneq ] = ShareConstraints( theta, dataS, marketIdByCon, n, shareHat, mask)
+function [ neq, eq, dneq, deq ] = ShareConstraints( theta, dataS, marketIdByCon, mapConID, n, shareHat, mask)
 %SHARECONSTRAINTS Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -8,9 +8,12 @@ d_probCon = zeros(numel(theta), n.con, n.maxChoice);
 for k = 1:size(dataS,1)
     for j = 1:size(dataS,2)
         if ~isempty(dataS{k,j})
+%              [prob, d_prob]= ProbitProb(theta(dataS{k,j}.pick), dataS{k,j});
+%              probCon(:, j) = prob;
+%              d_probCon(dataS{k,j}.pick, :, j) = d_prob;
              [prob, d_prob]= ProbitProb(theta(dataS{k,j}.pick), dataS{k,j});
-             probCon(dataS{k,j}.allConID, j) = prob;
-             d_probCon(dataS{k,j}.pick, dataS{k,j}.allConID, j) = d_prob;
+             probCon(mapConID(dataS{k,j}.allConID), j) = prob;
+             d_probCon(dataS{k,j}.pick, mapConID(dataS{k,j}.allConID), j) = d_prob;
         end
     end
 end
@@ -23,10 +26,10 @@ for k = 1:numel(allmarkets)
     d_share(:,k,:) = mean(d_probCon(:,marketIdByCon == allmarkets(k),:),2);   
 end
 
-share = share(mask.delta==1);
+share = share(mask.delta'==1);
 for i = 1:numel(theta)
     d = d_share(i,:,:);
-    deq(i,:) = d(mask.delta==1);
+    deq(i,:) = d(mask.delta'==1);
 end
 eq = share(:) - shareHat(:);
 neq = [];

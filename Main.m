@@ -7,7 +7,7 @@ clear;
 % spec.dataName   = 'Data\data_fullsample.txt';
 % spec.dataName   = 'Data\data_sh_20stations.csv';
 % spec.dataName   = 'Data\logit_data_salvohuse.csv';
-spec.dataName   = 'Data\data_sh_full_cityid.csv';
+spec.dataName   = 'Data\data_sh_full_cleaned.csv';
 %spec.dataName   = 'Data\data_spec1_full_cleaned.csv';
 
 
@@ -28,7 +28,7 @@ n.prodChar  = 0;
 n.conChar   = 9;
 
 % for mfx
-spec.paramType = [0;0;0;0;0;3;2*ones(n.conChar,1)];
+spec.paramType = [0;0;0;0;0;3;2*ones(n.conChar-1,1);1];
 
 % Allow for unobserved product heterogeneity ( xi_jl ) 
 %   0 = no
@@ -50,7 +50,7 @@ spec.base       = 1;
 spec.scale      = 1 + (spec.base == 1); % not ready to change to other scale yet
 
 % Number of random draws 
-n.draw          = 400;
+n.draw          = 100;
 
 % Random draw type
 %   1 = use pseudo-random draws
@@ -63,7 +63,7 @@ spec.halton.leap        = 100;
 spec.halton.scramble    = 'RR2';
 
 % Seed of random draws ( matters only when pseudo-random draws are used )
-rand( 'seed', 12345 );
+rng('default');
 
 % Solver ( NOTE: do not use KNITRO if frequency simulator is used )
 %   1 = use KNITRO 
@@ -72,7 +72,7 @@ rand( 'seed', 12345 );
 spec.solver     = 1;
 
 % Common optimization options
-opt.maxIter     = 50000;
+opt.maxIter     = 2000;
 opt.maxFunEvals = 1e+10;
 opt.display     = 'iter';
 opt.tolFun      = 1e-8;
@@ -104,8 +104,10 @@ ConstructData;
 % diary( spec.logName );
 
 % Start value
-theta_0                         = ones(n.theta, 1 );
-theta_0(1)                      = -100;
+% load theta_00.mat;
+% theta_0 = thetaHat;
+theta_0                         = rand(n.theta, 1 );
+theta_0(1)                      = -20;
 
 %% Run estimation
 RunEstimation;
@@ -118,10 +120,28 @@ fprintf('\n\n   Total time      = %.4f seconds\n', toc(start_time));
 fprintf(['   Wall-clock time = ' datestr(now - wall_clock,13) '\n']);
 
 %% Save the results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clearvars -except thetaHat MLE spec n opt meanData;
+clearvars -except dataHeader dataMatrix dataR choicesetcode thetaHat MLE spec n opt meanData;
 [~,name,~] = fileparts(spec.logName);
-[ mfx, P, se_mfx, se_P] = marginalEffect(thetaHat, meanData, n, spec, MLE.cov);
-save(['Results/' name '.mat']);
+%tic;[mfx, P, se_mfx, se_P] = marginalEffect(thetaHat, meanData, n, spec, MLE.cov);toc;
+tic;[ amfx, se_amfx, aP, se_aP ] = AME( dataMatrix, dataR, choicesetcode, thetaHat, n, spec, MLE.cov ); toc;
+%%
+mfxHeader = {};
+for i = 1:numel(spec.paramType)
+    if spec.paramType(i) == 0; continue; end;
+    if spec.paramType(i) < 3
+        mfxHeader{end+1} = dataHeader{i};
+    else
+        for j=1:n.maxChoice
+            mfxHeader{end+1} = [dataHeader{i} num2str(j)];
+        end
+    end
+end
+
+mfxHeader = repmat(mfxHeader, 1, n.maxChoice);
+%%
+%printmat([mfx, se_mfx, abs(mfx./se_mfx)], 'Marginal Effects at Means', strjoin(mfxHeader), 'MEM SE t');
+printmat([amfx, se_amfx, abs(amfx./se_amfx)], 'Average Marginal Effects', strjoin(mfxHeader), 'AME SE t');
+ save(['Results/' name '.mat']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
