@@ -2,8 +2,10 @@ function [ L ] = mychol( A )
 %MYCHOL Summary of this function goes here
 %   Detailed explanation goes here
 
-if size(A,1) == 1
-    L = sqrt(A(1,1));
+assert(size(A,1) == size(A,2));
+if isscalar(A)
+    assert(A>-1e-3);
+    L = sqrt(max(A,0));
     return;
 end
 

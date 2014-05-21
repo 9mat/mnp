@@ -246,6 +246,7 @@ for h = 1 : n.maxChoice
     clear tempOmega
 end
 
+%%
 delta_table = reshape([delta(:) se_delta(:)]', [2*n.maxChoice n.market])';
 fprintf( '\n***** Fixed Effect estimates');
-printmat(delta_table, 'Fixed Effects', num2str(allmarkets'), 'choice_1  se_1 choice_2 se_2 choice_3 se_3');
+printmat(delta_table, 'Fixed Effects', num2str(allmarkets'), 'choice_1  se_1 choice_2 se_2 choice_3 se_3 choice_4 se_4');

@@ -32,6 +32,9 @@ optOption   = optimset( 'MaxIter', opt.maxIter, ...
 
 
 
+% Bounds on all parameters
+ub  = ones( n.theta, 1 ) * 100;    
+lb  = ones( n.theta, 1 ) * -100;
 
 % Define objective function
 obj = @(x) LogLike( x, dataR );
@@ -73,13 +76,10 @@ if spec.solver == 1
                          @(x) NonLCon( x, n, spec.boundSize ), optOption );
                      
     elseif spec.constraint == 2
-%         [ thetaHat, MLE.value ] = ...
-%             ktrlink( obj, theta_0, [], [], [], [], lb, ub, ...
-%             [], optOption );
         
         [ thetaHat, MLE.value ] = ...
-            ktrlink( obj, theta_0, [], [], [], [], lb, ub, ...
-            [], optOption2 );
+                knitromatlab( obj, theta_0, [], [], [], [], lb, ub, ...
+                         [], [], optOption2 );
     end
          
 
@@ -110,11 +110,9 @@ elseif spec.solver == 3
                             'TolCon', opt.tolCon, ...
                             'TolX', opt.tolX, ...
                             'Algorithm', opt.algorithm, ...
-                            'GradObj', 'off', ...
+                            'GradObj', opt.gradObj, ...
                             'GradConstr', opt.gradConstr, ...
-                            'FinDiffType', 'central', ...
-                            'FinDiffRelStep', 1e-10, ...
-                            'DerivativeCheck', 'on' );
+                            'DerivativeCheck', 'off' );
                         
     if spec.constraint == 1
         
@@ -126,8 +124,22 @@ elseif spec.solver == 3
         
         [ thetaHat, MLE.value ] = ...
                 fmincon( obj, theta_0, [], [], [], [], lb, ub, ...
-                         constraints, optOption );
+                         [], optOption );
     end
+elseif spec.solver == 4
+    funcs.objective = obj;
+    funcs.gradient = @(x) LogLikeGrad(x, dataR);
+    
+    options.lb = lb;
+    options.ub = ub;
+    
+    options.ipopt.hessian_approximation = 'limited-memory';
+    options.ipopt.derivative_test = 'first-order';
+    options.ipopt.max_iter = opt.maxIter;
+%     options.ipopt.derivative_test_perturbation = 1e-5;
+    
+    [ thetaHat, info ] = ipopt(theta_0, funcs, options);
+    MLE.value = obj(thetaHat);
 end
 
 % Estimation time in seconds
@@ -141,8 +153,9 @@ nLoglike    = @( x, data, cens, freq ) obj( x );
 % Compute MLE covariance matrix by finite difference
 fprintf('\n Computing MLE Covariance Matrix...');
 MLE.covOpt  = statset( 'GradObj', opt.gradObj );
-MLE.cov     = mlecov( thetaHat, data, 'nloglf', nLoglike, ...
-                      'options', MLE.covOpt );
+%MLE.cov     = mlecov( thetaHat, data, 'nloglf', nLoglike, ...
+%                      'options', MLE.covOpt );
+MLE.cov = bhhh(thetaHat, dataR);
 
 % Standard errors
 MLE.se      = sqrt( diag( MLE.cov ) );

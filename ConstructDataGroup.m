@@ -32,9 +32,10 @@ for i = 1:numel(allchoices)
     data.choice(data.choice == allchoices(i)) = -i;
     
     if allchoices(i) == spec.base
-        spec.base = i;
+        spec.newbase = i;
     end
 end
+spec.base = spec.newbase;
 
 data.alternative = - data.alternative;
 data.choice = - data.choice;
@@ -74,7 +75,7 @@ n.market    = length( unique( data.marketID ) );
 n.con       = length( unique( data.conID ) );
 
 % Largest number of choices
-n.maxChoice = max( data.choiceSetSize );
+n.maxChoice = numel(unique(data.alternative));
 
 %% Number of parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

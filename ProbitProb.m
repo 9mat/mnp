@@ -107,7 +107,10 @@ ub          = zeros( n.con, n.draw, n.maxChoice - 1 );
 for j = 1 : n.maxChoice - 1        
     aj = repmat(permute(V(j, :), [2 3 1]), [1 n.draw]);
     if j > 1
-        w(:,:,j-1) = norminv(ubj .* dataR.draw.uni(:,:,j-1));
+        wj = norminv(ubj .* dataR.draw.uni(:,:,j-1));
+        wj(wj < -50) = aj(wj < -50);
+        w(:,:,j-1) = wj;
+        
         for h = 1:j-1
             aj = aj + bsxfun( @times, w(:,:,h), squeeze(S_i(j,h,:)));
         end
@@ -142,8 +145,16 @@ if nargout > 1
     normpdf_w( normpdf_w == 0 ) = eps;
     
     u_normpdf_a_w   = dataR.draw.uni .* normpdf_a(:,:,1:end-1) ./ normpdf_w; 
-    normpdf_a_ub    = reshape( normpdf_a ./ ub, ...
-                               [ 1 n.con n.draw ( n.maxChoice - 1 ) ] );
+%     normpdf_a_ub    = reshape( normpdf_a ./ ub, ...
+%                                [ 1 n.con n.draw ( n.maxChoice - 1 ) ] );
+
+    % when $a$ is large and negative, use the appoximation to avoid making
+    % everything zeros
+    %   normpdf(a)/normcdf(a) = -a when a << 0
+    normpdf_a_ub    = normpdf_a ./ ub;
+    normpdf_a_ub(a < -30) = -a(a < -30);
+    normpdf_a_ub    = reshape(normpdf_a_ub, [1 n.con n.draw (n.maxChoice-1)]);
+
     clear normpdf_w ub;      
     
     % Derivatives of V wrt to beta

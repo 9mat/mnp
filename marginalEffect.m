@@ -7,11 +7,14 @@ function [ mfx_full, P_full, se_mfx, se_P, d_mfx_d_theta_full, d_P_d_theta_full]
 %   paramType = 2 --> binary and product independent
 %   paramType = 3 --> continuous and product dependent
 %   paramType = 4 --> binary and product dependent
+% TODO
+%   paramType = xy --> a set of dummies of type y 
 
 choiceset = sort(unique(meanData(:,4)));
 nchoice = numel(choiceset);
 ncon = numel(unique(meanData(:,2)));
-nmfx = sum(spec.paramType > 0) + (nchoice-1)*sum(spec.paramType > 2);
+type = mod(spec.paramType,10);
+nmfx = sum(type > 0) + (nchoice-1)*sum(type > 2);
 
 data1 = repmat(meanData,nmfx,1);
 data2 = data1;
@@ -20,13 +23,20 @@ dx = [];
 
 index = 1:size(meanData,1);
 for i = 1:numel(spec.paramType)
-    if spec.paramType(i) == 0; continue; end
+    type = mod(spec.paramType(i),10);
+
+    if type == 0; continue; end
     
-    if spec.paramType(i) == 1 || spec.paramType(i) == 2
-        if spec.paramType(i) == 1
+    if type == 1 || type == 2
+        if type == 1
             data1(index,i) = meanData(:,i)*(1-epsilon);
             data2(index,i) = meanData(:,i)*(1+epsilon);
         else
+            if spec.paramType(i) > 10
+                data1(index, spec.paramType == spec.paramType(i)) = 0;
+                data2(index, spec.paramType == spec.paramType(i)) = 0;
+            end
+            
             data1(index,i) = 0;
             data2(index,i) = 1;
         end
@@ -37,10 +47,14 @@ for i = 1:numel(spec.paramType)
     end
     
     for j=1:nchoice
-        if spec.paramType(i) == 3
+        if type == 3
             data1(index(j:nchoice:end),i) = meanData(j:nchoice:end,i)*(1-epsilon);
             data2(index(j:nchoice:end),i) = meanData(j:nchoice:end,i)*(1+epsilon);
         else
+            if spec.paramType(i) > 10
+                data1(index(j:nchoice:end), spec.paramType == spec.paramType(i)) = 0;
+                data2(index(j:nchoice:end), spec.paramType == spec.paramType(i)) = 0;
+            end
             data1(index(j:nchoice:end),i) = 0;
             data2(index(j:nchoice:end),i) = 1;
         end
@@ -78,7 +92,8 @@ P2 = P(m+1:2*m);
 mfx = (P2-P1)./dx;
 P = P(2*m+1:end);
 
-n.mfx = sum(spec.paramType > 0) + (n.maxChoice-1)*sum(spec.paramType > 2);
+type = mod(spec.paramType,10);
+n.mfx = sum(type > 0) + (n.maxChoice-1)*sum(type > 2);
 
 
 epsilon = 1e-5;
@@ -107,9 +122,11 @@ se_P = sqrt(diag(d_P_d_theta*V_theta*d_P_d_theta'));
 
 mask = 0;
 for i = 1:numel(spec.paramType)
-    if spec.paramType(i) == 1 || spec.paramType(i) == 2
+    type = mod(spec.paramType(i),10);
+
+    if type == 1 || type == 2
         mask(end+1) = mask(end) + 1;
-    elseif spec.paramType(i) == 3 || spec.paramType(i) == 4
+    elseif type == 3 || type == 4
         mask(end+1:end+nchoice) = mask(end) + choiceset;
     end
 end

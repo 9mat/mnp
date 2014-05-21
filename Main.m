@@ -7,9 +7,9 @@ clear;
 % spec.dataName   = 'Data\data_fullsample.txt';
 % spec.dataName   = 'Data\data_sh_20stations.csv';
 % spec.dataName   = 'Data\logit_data_salvohuse.csv';
-spec.dataName   = 'Data\data_sh_full_cityid.csv';
-%spec.dataName   = 'Data\data_spec1_full_cleaned.csv';
-
+%spec.dataName   = 'Data\data_sh_full_cleaned_keepchoice1.csv';
+spec.dataName   = 'Data\data_new_cleaned.csv';
+spec.include_emidgrade = false;
 
 % Log file name
 [~,name,ext] = fileparts(spec.dataName);
@@ -19,16 +19,21 @@ spec.logName    = ['Log\' name '.' datestr(now,'yyyymmdd.HHMM') '.log'];
 spec.shareName  = ['Data\share_' name ext];
 
 % Number of consumer groups ( R )
-n.conGroup  = 0;
+n.conGroup  = 6;
 
 % Number of product characteristic variables ( x_jl )
 n.prodChar  = 0;
 
 % Number of consumer characteristic variables ( x_i )
-n.conChar   = 9;
+n.conChar   = 6;
 
 % for mfx
-spec.paramType = [0;0;0;0;0;3;2*ones(n.conChar-1,1);1];
+%   paramType = 0 --> no marginal effect
+%   paramType = 1 --> continuous and product independent
+%   paramType = 2 --> binary and product independent
+%   paramType = 3 --> continuous and product dependent
+%   paramType = 4 --> binary and product dependent
+spec.paramType = [0;0;0;0;0;3;12;12;12;12;2;22;22;22;32;32;2;2;1];
 
 % Allow for unobserved product heterogeneity ( xi_jl ) 
 %   0 = no
@@ -50,7 +55,7 @@ spec.base       = 1;
 spec.scale      = 1 + (spec.base == 1); % not ready to change to other scale yet
 
 % Number of random draws 
-n.draw          = 400;
+n.draw          = 100;
 
 % Random draw type
 %   1 = use pseudo-random draws
@@ -107,7 +112,7 @@ ConstructData;
 % load theta_00.mat;
 % theta_0 = thetaHat;
 theta_0                         = rand(n.theta, 1 );
-theta_0(1)                      = -20;
+theta_0(1)                      = -10;
 
 %% Run estimation
 RunEstimation;
@@ -127,8 +132,9 @@ tic;[ amfx, se_amfx, aP, se_aP ] = AME( dataMatrix, dataR, choicesetcode, thetaH
 %%
 mfxHeader = {};
 for i = 1:numel(spec.paramType)
-    if spec.paramType(i) == 0; continue; end;
-    if spec.paramType(i) < 3
+    type = mod(spec.paramType(i), 10);
+    if type == 0; continue; end;
+    if type < 3
         mfxHeader{end+1} = dataHeader{i};
     else
         for j=1:n.maxChoice
