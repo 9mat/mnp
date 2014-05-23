@@ -41,11 +41,11 @@ omega                       = zeros( n.maxChoice, n.maxChoice );
 omega( 2 : end, 2 : end )   = S * S';
 
 delta = NaN(n.maxChoice, n.market);
-delta(mask.delta==1) = params.delta;
+delta(identifiable.delta) = params.delta;
 delta(spec.base,:) = 0;
 
 se_delta = NaN(size(delta));
-se_delta(mask.delta==1) = params.se.delta;
+se_delta(identifiable.delta) = params.se.delta;
 se_delta(spec.base,:) = 0;
 clear temp
 

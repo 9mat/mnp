@@ -33,13 +33,14 @@ optOption   = optimset( 'MaxIter', opt.maxIter, ...
 
 
 % Bounds on all parameters
-ub  = ones( n.theta, 1 ) * 100;    
-lb  = ones( n.theta, 1 ) * -100;
+ub  = ones( n.theta, 1 ) * 30;    
+lb  = ones( n.theta, 1 ) * -30;
 
 % Define objective function
 obj = @(x) LogLike( x, dataR );
+objzero = @(x) zerofunc( x );
 %obj = @(x) NFXLogLike(x, dataR, dataS, marketIdByCon, n, shareHat, mask, opt);
-constraints = @(x) ShareConstraints(x,dataS,marketIdByCon,mapConID,n,shareHat,mask);
+constraints = @(x) ShareConstraints(x, dataS, identifiable, n, shareHat);
 
 index = 1+n.conGroup+(n.maxChoice-1)*(n.conChar + n.prodChar);
 
@@ -71,9 +72,16 @@ if spec.solver == 1
                        
     if spec.constraint == 1
         
+%         [ thetaHat, MLE.value ] = ...
+%                 knitromatlab( obj, theta_0, [], [], [], [], lb, ub, ...
+%                          @(x) NonLCon( x, n, spec.boundSize ), optOption );
+        thetaHat = ...
+                knitromatlab( objzero, theta_0, [], [], [], [], lb, ub, ...
+                         constraints, [], optOption2 );
+
         [ thetaHat, MLE.value ] = ...
-                knitromatlab( obj, theta_0, [], [], [], [], lb, ub, ...
-                         @(x) NonLCon( x, n, spec.boundSize ), optOption );
+                knitromatlab( obj, thetaHat, [], [], [], [], lb, ub, ...
+                         constraints, [], optOption2 );
                      
     elseif spec.constraint == 2
         

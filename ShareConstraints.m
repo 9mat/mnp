@@ -1,36 +1,38 @@
-function [ neq, eq, dneq, deq ] = ShareConstraints( theta, dataS, marketIdByCon, mapConID, n, shareHat, mask)
+function [ neq, eq, dneq, deq ] = ShareConstraints( theta, dataS, identifiable, n, shareHat)
 %SHARECONSTRAINTS Summary of this function goes here
 %   Detailed explanation goes here
 
-probCon = zeros(n.con, n.maxChoice); 
-d_probCon = zeros(numel(theta), n.con, n.maxChoice); 
+eq = nan(size(identifiable.delta));
+deq = zeros([numel(theta) size(eq)]);
 
-for k = 1:size(dataS,1)
-    for j = 1:size(dataS,2)
-        if ~isempty(dataS{k,j})
-%              [prob, d_prob]= ProbitProb(theta(dataS{k,j}.pick), dataS{k,j});
-%              probCon(:, j) = prob;
-%              d_probCon(dataS{k,j}.pick, :, j) = d_prob;
-             [prob, d_prob]= ProbitProb(theta(dataS{k,j}.pick), dataS{k,j});
-             probCon(mapConID(dataS{k,j}.allConID), j) = prob;
-             d_probCon(dataS{k,j}.pick, mapConID(dataS{k,j}.allConID), j) = d_prob;
+shareHat = shareHat';
+for m = 1:size(dataS,2)
+    %fprintf('Market #%d\n', m);
+    for j = 1:size(dataS,1);
+        if ~isempty(dataS{j,m});
+            dataS_0 = dataS{j,m};
+            break;
+        end;
+    end;
+    
+    probCon = zeros(n.maxChoice, dataS_0.n.con);
+    d_probCon = zeros(numel(theta), n.maxChoice, dataS_0.n.con);
+    
+    for j = 1:size(dataS,1)
+        if ~isempty(dataS{j,m})
+            [prob, d_prob]= ProbitProb(theta(dataS{j,m}.pick), dataS{j,m});
+            probCon(j, :) = prob;
+            d_probCon(dataS{j,m}.pick, j, :) = d_prob;
         end
     end
+        
+    eq(:,m) = mean(probCon,2) - shareHat(:,m);
+    deq(:, :, m) = mean(d_probCon,3);
 end
 
-allmarkets = sort(unique(marketIdByCon));
-share = nan(numel(allmarkets), n.maxChoice);
-d_share = nan(n.theta, n.market, n.maxChoice);
-for k = 1:numel(allmarkets)
-    share(k,:) = mean(probCon(marketIdByCon == allmarkets(k),:));
-    d_share(:,k,:) = mean(d_probCon(:,marketIdByCon == allmarkets(k),:),2);   
-end
+eq = eq(identifiable.delta);
+deq = reshape(deq, n.theta, numel(identifiable.delta));
+deq = deq(:, identifiable.delta(:));
 
-share = share(mask.delta'==1);
-for i = 1:numel(theta)
-    d = d_share(i,:,:);
-    deq(i,:) = d(mask.delta'==1);
-end
-eq = share(:) - shareHat(:);
 neq = [];
 dneq = [];

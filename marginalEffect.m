@@ -1,5 +1,5 @@
 function [ mfx_full, P_full, se_mfx, se_P, d_mfx_d_theta_full, d_P_d_theta_full] = ...
-    marginalEffect(thetaHat, meanData, n, spec, V_theta)
+    marginalEffect(thetaHat, meanData, n, spec, cov)
 %MFX Summary of this function goes here
 %   Detailed explanation goes here
 %   paramType = 0 --> no marginal effect
@@ -116,8 +116,8 @@ d_P1_d_theta = d_P_d_theta(m+1:2*m,:);
 d_P_d_theta = d_P_d_theta(2*m+1:end,:);
 d_mfx_d_theta = bsxfun(@rdivide, d_P2_d_theta - d_P1_d_theta, dx);
 
-se_mfx = sqrt(diag(d_mfx_d_theta*V_theta*d_mfx_d_theta'));
-se_P = sqrt(diag(d_P_d_theta*V_theta*d_P_d_theta'));
+se_mfx = sqrt(diag(d_mfx_d_theta*cov*d_mfx_d_theta'));
+se_P = sqrt(diag(d_P_d_theta*cov*d_P_d_theta'));
 
 
 mask = 0;

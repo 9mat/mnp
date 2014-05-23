@@ -16,19 +16,24 @@ dataMatrix(dataMatrix(:,3) < 2, :) = [];
 
 % for the 2160 data, station 141, 172 noone chooses the first alternative,
 % which is the base alternative, thus here we simply throw them away
-% dataMatrix(dataMatrix(:,1) == 141, :) = [];
-% dataMatrix(dataMatrix(:,1) == 172, :) = [];
-% shareMatrix(shareMatrix(:,1) == 141, :) = [];
-% shareMatrix(shareMatrix(:,1) == 172, :) = [];
+dataMatrix(dataMatrix(:,1) == 141, :) = [];
+dataMatrix(dataMatrix(:,1) == 172, :) = [];
+shareMatrix(shareMatrix(:,1) == 141, :) = [];
+shareMatrix(shareMatrix(:,1) == 172, :) = [];
 
 % ignore midgrade ethanol
 if ~spec.include_emidgrade
     dataMatrix(dataMatrix(:,4)==4 | dataMatrix(:,5)==4,:) = [];
 end
 
+if spec.keep_treattype >=0
+    tt = dataMatrix(:,end);
+    dataMatrix(tt ~= spec.keep_treattype,:) = [];
+end
+
 shareHat = shareMatrix(:,2:end);
-shareHat(:,spec.base) = [];
-shareHat(isnan(shareHat)) = [];
+shareHat(:,spec.base) = NaN;
+%shareHat(isnan(shareHat)) = [];
 
 %% Separate data according to choice sets
 
@@ -59,8 +64,11 @@ uniquecode = sort(unique(choicesetcode));
 n.choiceset = numel(uniquecode);
 
 %% Construct the dataR structure for each choice set
+allmarkets = sort(unique(marketID));
+n.market = numel(allmarkets);
+choicesetsize = zeros(size(allmarkets));
 
-dataS = cell(n.choiceset, n.maxChoice);
+dataS = cell(n.choiceset, n.market);
 dataR = cell(n.choiceset, 1);
 data = cell(n.choiceset, 1);
 
@@ -71,19 +79,31 @@ for k = 1:n.choiceset
     missing = true(1,n.maxChoice);
     missing(dec2bin(uniquecode(k)) == '1') = false;
     
+%     for j = 1:n.maxChoice
+%         if j ~= spec.base && ~missing(j)
+%             dataMatrix(belong, 5) = j;
+%             [dataS{k,j}, ~] = ConstructDataGroup(dataMatrix(belong,:),n,spec);
+%             dataS{k,j}.draw = dataR{k}.draw;
+%         end
+%     end
+end
+
+
+for m = 1:n.market
+    belong = marketID == allmarkets(m);
+    i = find(belong, 1 , 'first');
+      
+    missing = true(1,n.maxChoice);
+    missing(dec2bin(choicesetcode(i)) == '1') = false;
+    
     for j = 1:n.maxChoice
         if j ~= spec.base && ~missing(j)
             dataMatrix(belong, 5) = j;
-            [dataS{k,j}, ~] = ConstructDataGroup(dataMatrix(belong,:),n,spec);
-            dataS{k,j}.draw = dataR{k}.draw;
+            [dataS{j,m}, ~] = ConstructDataGroup(dataMatrix(belong,:),n,spec);
         end
     end
 end
 
-
-allmarkets = sort(unique(marketID));
-n.market = numel(allmarkets);
-choicesetsize = zeros(size(allmarkets));
 %% Identify the set of estimable parameters for each data group
 
 % Each data group has its own set of estimable parameters, depending on the
@@ -94,92 +114,94 @@ choicesetsize = zeros(size(allmarkets));
 % original set of parameters) are estimable in each data group (vector pick
 % below)
 
-mask.delta = zeros(n.maxChoice, n.market);
+identifiable.delta = false(n.maxChoice, n.market);
 for k = 1:numel(allmarkets)
     allchoices = unique(alternative(marketID == allmarkets(k)));
-    mask.delta(allchoices,k) = 1;
+    identifiable.delta(allchoices,k) = true;
     choicesetsize(k) = numel(allchoices);
 end
-mask.delta(spec.base,:) = 0;
+identifiable.delta(spec.base,:) = 0;
 deltaindex = [0 cumsum(choicesetsize-1)'] + 1;
 
 % Mask the identifiable parameters of the whole model (e.g. mark
 % base-alternative $\beta$'s as not identifiable)
-mask.beta_1 = ones(n.maxChoice, n.prodChar);
-mask.beta_2 = ones(n.maxChoice, n.conChar);
-mask.S = tril(ones(n.maxChoice, n.maxChoice));
+identifiable.beta_1 = true(n.maxChoice, n.prodChar);
+identifiable.beta_2 = true(n.maxChoice, n.conChar);
+identifiable.S      = tril(true(n.maxChoice, n.maxChoice));
 
-mask.beta_2(spec.base,:) = 0;
-mask.beta_1(spec.base,:) = 0;
-mask.S(spec.base,:) = 0;
-mask.S(:,spec.base) = 0;
-mask.S(spec.scale, spec.scale) = 0;
+identifiable.beta_1(spec.base,:)    = false;
+identifiable.beta_2(spec.base,:)    = false;
+identifiable.S(spec.base,:)         = false;
+identifiable.S(:,spec.base)         = false;
+identifiable.S(spec.scale, spec.scale) = false;
 
 % Count the number of estimable parameters of the full model
-n.beta_1 = sum(mask.beta_1(:));
-n.beta_2 = sum(mask.beta_2(:));
-n.beta = n.beta_1 + n.beta_2 + 1 + n.conGroup;
-n.S = sum(mask.S(:));
-n.delta = deltaindex(end) - 1;
-n.theta = 1+n.conGroup + n.beta_1 + n.beta_2 + n.S + n.delta;
+params = fieldnames(identifiable);
+for i = 1: numel(params)
+    n.(params{i}) = sum(identifiable.(params{i})(:));
+    paramsid.(params{i}) = zeros(size(identifiable.(params{i})));
+    paramsid.(params{i})(identifiable.(params{i})) = 1:n.(params{i});
+end
+
+n.beta      = n.beta_1 + n.beta_2 + 1 + n.conGroup;
+n.theta     = n.beta + n.S + n.delta;
 n.maxChoice = max(dataMatrix(:,4));
 
+paramsid.beta_1 = paramsid.beta_1 + 1 + n.conGroup;
+paramsid.beta_2 = paramsid.beta_2 + 1 + n.conGroup + n.beta_1;
+paramsid.delta  = paramsid.delta  + n.beta;
+paramsid.S      = paramsid.S      + n.beta + n.delta;
+
 % Index the estimable parameters in a running order
-mask.beta_1(mask.beta_1 == 1) = 1:n.beta_1;
-mask.beta_2(mask.beta_2 == 1) = 1:n.beta_2;
-mask.S(mask.S == 1) = 1:n.S;
 
 for k = 1:n.choiceset
     % Decode the choice set code to know which alternatives are missing
     missing = true(1,n.maxChoice);
     missing(dec2bin(uniquecode(k)) == '1') = false;
     
-    pick.beta_1 = mask.beta_1;
-    pick.beta_2 = mask.beta_2;
-    pick.S = mask.S;
+    % begin with all identifiable params of the full model
+    k_identifiable = identifiable;
     
-    % mark the parameters corresponding to missing alternatives as not
-    % estimable
-    pick.beta_1(missing,:) = 0;
-    pick.beta_2(missing,:) = 0;
-    pick.S(missing,:) = 0;
-    pick.S(:,missing) = 0;
+    % mark the parameters of the missing choices as unidentified
+    k_identifiable.beta_1(missing,:)   = false;
+    k_identifiable.beta_2(missing,:)   = false;
+    k_identifiable.S(missing,:)        = false;
+    k_identifiable.S(:,missing)        = false;
     
-    % delete the indices of all the unestimable parameters
-    pick.beta_1(pick.beta_1 == 0) = [];
-    pick.beta_2(pick.beta_2 == 0) = [];
-    pick.S(pick.S == 0) = [];
+    % mark the fixed effects of outside markets as unidentified
+    submarket = unique(marketID(choicesetcode == uniquecode(k)));
+    dv_submarket = ismember(allmarkets, submarket);
+    k_identifiable.delta = false(size(identifiable.delta));
+    k_identifiable.delta(:, dv_submarket) = identifiable.delta(:,dv_submarket);
+
+    % combine all the identified params together
+    pick = sort([ (1:1+n.conGroup)'; ...
+        paramsid.beta_1(k_identifiable.beta_1); ...
+        paramsid.beta_2(k_identifiable.beta_2); ...
+        paramsid.delta(k_identifiable.delta); ...
+        paramsid.S(k_identifiable.S) ]);
+        
+    dataR{k}.identifiable = k_identifiable;
+    dataR{k}.pick = pick;
+    dataR{k}.pick_delta = sort(paramsid.delta(k_identifiable.delta));
     
-    belong = choicesetcode == uniquecode(k);
-    allsubmarkets = unique(marketID(belong));
-    choicesetsize = numel(unique(alternative(belong)));
-    pick.delta = [];
-    for j = 1:numel(allsubmarkets)
-        m = find(allmarkets == allsubmarkets(j));
-        pick.delta = [pick.delta deltaindex(m):deltaindex(m)+choicesetsize-2];
-    end
-    pick.delta = sort(pick.delta);
-    
-    pick.theta = (1:1+n.conGroup)'; % alpha_0, alpha_r
-    % collect the indices of the rest to form vector pick.theta
-    pick.theta = (1:1+n.conGroup)'; % $\alpha_0, \alpha_r$
-    temp = numel(pick.theta);
-    
-    pick.theta = [pick.theta;pick.beta_1(:)+temp];
-    temp = temp + n.beta_1;
-    
-    pick.theta = [pick.theta;pick.beta_2(:)+temp];
-    temp = temp + n.beta_2;
-    
-    pick.theta = [pick.theta;pick.delta(:)+temp];
-    temp = temp + n.delta;
-    
-    pick.theta = [pick.theta;pick.S(:)+temp];
-    dataR{k}.pick = pick.theta;
-    dataR{k}.pick_delta = pick.delta;
-    for j = 1:n.maxChoice
-        if ~isempty(dataS{k,j})
-            dataS{k,j}.pick = pick.theta;
+    for i = 1:numel(submarket)
+        m = allmarkets == submarket(i);
+        k_identifiable.delta = false(size(identifiable.delta));
+        k_identifiable.delta(:,m) = identifiable.delta(:,m);
+        
+        pick = sort([ (1:1+n.conGroup); ...
+            paramsid.beta_1(k_identifiable.beta_1); ...
+            paramsid.beta_2(k_identifiable.beta_2); ...
+            paramsid.delta(k_identifiable.delta); ...
+            paramsid.S(k_identifiable.S) ]);
+        
+        for j = 1:n.maxChoice
+            if ~isempty(dataS{j,m})
+                dataS{j,m}.identifiable = k_identifiable;
+                dataS{j,m}.pick = pick;
+                dataS{j,m}.pick_delta = sort(paramsid.delta(k_identifiable.delta));
+            end
         end
     end
 end
