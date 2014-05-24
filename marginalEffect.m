@@ -74,10 +74,10 @@ conID = repmat(1:2*m+nchoice*ncon, nchoice, 1);
 data(:,2) = conID(:);
 
 n.con = numel(unique(data(:,2)));
-n.draw = 1000;
+n.draw = 10000;
 [dataR, ~] = ConstructDataGroup(data, n, spec);
 dataR.draw.uni = repmat(dataR.draw.uni(1,:,:), [n.con 1 1]);
-[P, dP] = ProbitProb(thetaHat, dataR);
+[P, dP] = ProbitProb(thetaHat, dataR, dataR.n, dataR.spec);
 
 m = (n.con - nchoice*ncon)/2;
 P1 = P(1:m);

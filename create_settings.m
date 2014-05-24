@@ -3,18 +3,18 @@ clear;
 %% Model Specification %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Main data file name
-% spec.dataName   = 'Data\data_fullsample.txt';
-% spec.dataName   = 'Data\data_sh_20stations.csv';
-% spec.dataName   = 'Data\logit_data_salvohuse.csv';
-spec.dataName   = 'Data\data_sh_full_cons.csv';
-%spec.dataName   = 'Data\data_spec1_full.txt';
+% spec.dataName   = 'Data/data_fullsample.txt';
+% spec.dataName   = 'Data/data_sh_20stations.csv';
+% spec.dataName   = 'Data/logit_data_salvohuse.csv';
+spec.dataName   = 'Data/data_sh_full_cons.csv';
+%spec.dataName   = 'Data/data_spec1_full.txt';
 
 % Share data file name
-spec.shareName  = 'Data\data_share_full.txt';
+spec.shareName  = 'Data/data_share_full.txt';
 
 % Log file name
 [~,name,~] = fileparts(spec.dataName);
-spec.logName    = ['Log\' name '.' datestr(now,'yyyymmdd.HHMM') '.log'];
+spec.logName    = ['Log/' name '.' datestr(now,'yyyymmdd.HHMM') '.log'];
 
 % Number of consumer groups ( R )
 n.conGroup  = 0;
