@@ -1,4 +1,4 @@
-function [ mfx_full, P_full, se_mfx, se_P, d_mfx_d_theta_full, d_P_d_theta_full] = ...
+function [ mfx_full, P_full, se_mfx, se_P, dmfx_full, dP_full] = ...
     marginalEffect(thetaHat, meanData, n, spec, cov)
 %MFX Summary of this function goes here
 %   Detailed explanation goes here
@@ -83,42 +83,28 @@ n.con = numel(unique(data(:,2)));
 n.draw = 10;
 [dataR, ~] = ConstructDataGroup(data, n, spec);
 dataR.draw.uni = repmat(dataR.draw.uni(1,:,:), [n.con 1 1]);
-P = ProbitProb(thetaHat, dataR);
+[P, dP] = ProbitProb(thetaHat, dataR);
 
 m = (n.con - nchoice*ncon)/2;
 P1 = P(1:m);
 P2 = P(m+1:2*m);
+dP1 = dP(:,1:m);
+dP2 = dP(:,m+1:2*m);
 
 mfx = (P2-P1)./dx;
+dmfx = bsxfun(@rdivide, dP2 - dP1, dx');
+
 P = P(2*m+1:end);
+dP = dP(:,2*m+1:end);
 
 type = mod(spec.paramType,10);
 n.mfx = sum(type > 0) + (n.maxChoice-1)*sum(type > 2);
 
 
-epsilon = 1e-5;
+se_mfx = sqrt(diag(dmfx'*cov*dmfx));
+se_P = sqrt(diag(dP'*cov*dP));
+
 k = numel(thetaHat);
-thetaHatPlus = repmat(thetaHat, 1, k).*(1 + epsilon*eye(k));
-thetaHatMinus = repmat(thetaHat, 1, k).*(1 - epsilon*eye(k));
-d_theta = diag(thetaHatPlus) - diag(thetaHatMinus);
-
-P_plus = zeros(n.con, k);
-P_minus = zeros(n.con, k);
-for i = 1:k
-    P_plus(:,i) = ProbitProb(thetaHatPlus(:,i), dataR);
-    P_minus(:,i) = ProbitProb(thetaHatMinus(:,i), dataR);
-end
-
-d_P_d_theta = bsxfun(@rdivide,P_plus - P_minus, d_theta');
-
-d_P2_d_theta = d_P_d_theta(1:m,:);
-d_P1_d_theta = d_P_d_theta(m+1:2*m,:);
-d_P_d_theta = d_P_d_theta(2*m+1:end,:);
-d_mfx_d_theta = bsxfun(@rdivide, d_P2_d_theta - d_P1_d_theta, dx);
-
-se_mfx = sqrt(diag(d_mfx_d_theta*cov*d_mfx_d_theta'));
-se_P = sqrt(diag(d_P_d_theta*cov*d_P_d_theta'));
-
 
 mask = 0;
 for i = 1:numel(spec.paramType)
@@ -127,20 +113,23 @@ for i = 1:numel(spec.paramType)
     if type == 1 || type == 2
         mask(end+1) = mask(end) + 1;
     elseif type == 3 || type == 4
+        % !!! 23/5/14 check if this depends on the assumption that
+        % choiceset include the maxChoice
         mask(end+1:end+nchoice) = mask(end) + choiceset;
     end
 end
 mask(1) = [];
-mask = bsxfun(@plus, mask, (0:nchoice-1)'*n.mfx)';
+
+mask = bsxfun(@plus, mask, (choiceset-1)*n.mfx)';
 mask = mask(:);
 
 mfx_full = zeros(n.mfx*n.maxChoice, ncon);
 mfx_full(mask, :) = reshape(mfx, ncon, nmfx*nchoice)';
 P_full = zeros(n.maxChoice, ncon);
 P_full(choiceset,:) = reshape(P, ncon, nchoice)';
-d_mfx_d_theta_full = zeros(n.mfx*n.maxChoice, k, ncon);
-d_mfx_d_theta_full(mask,:,:) = permute(reshape(d_mfx_d_theta, [ncon, nmfx*nchoice, k]), [2,3,1]);
-d_P_d_theta_full = zeros(n.maxChoice, k, ncon);
-d_P_d_theta_full(choiceset,:,:) = permute(reshape(d_P_d_theta, [ncon, nchoice, k]), [2,3,1]);
+dmfx_full = zeros(n.mfx*n.maxChoice, k, ncon);
+dmfx_full(mask,:,:) = permute(reshape(dmfx', [ncon, nmfx*nchoice, k]), [2,3,1]);
+dP_full = zeros(n.maxChoice, k, ncon);
+dP_full(choiceset,:,:) = permute(reshape(dP', [ncon, nchoice, k]), [2,3,1]);
 end
 
