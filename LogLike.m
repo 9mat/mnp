@@ -18,7 +18,7 @@ elseif nargout > 1
         d_nLogLike(dataR{k}.pick)  = d_nLogLike(dataR{k}.pick) ...
             - sum( bsxfun( @rdivide, d_probChosen, probChosen' ), 2 );
         probChosen( probChosen < eps )   = eps;
-        nLogLike    = nLogLike-sum( log( probChosen ) );
+        nLogLike    = nLogLike - sum( log( probChosen ) );
     end
     
     

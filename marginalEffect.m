@@ -7,6 +7,8 @@ function [ mfx_full, P_full, se_mfx, se_P, d_mfx_d_theta_full, d_P_d_theta_full]
 %   paramType = 2 --> binary and product independent
 %   paramType = 3 --> continuous and product dependent
 %   paramType = 4 --> binary and product dependent
+% TODO
+%   paramType = xy --> a set of dummies of type y 
 
 choiceset = sort(unique(meanData(:,4)));
 nchoice = numel(choiceset);
@@ -20,15 +22,20 @@ dx = [];
 
 index = 1:size(meanData,1);
 for i = 1:numel(spec.paramType)
-    if spec.paramType(i) == 0; continue; end
+    type = spec.paramType(i);
+    sameGroup = spec.paramGroup == spec.paramGroup(i);
+    sameID = spec.paramID == spec.paramID(i);
     
-    if spec.paramType(i) == 1 || spec.paramType(i) == 2
-        if spec.paramType(i) == 1
-            data1(index,i) = meanData(:,i)*(1-epsilon);
-            data2(index,i) = meanData(:,i)*(1+epsilon);
+    if type == 0; continue; end
+    
+    if type <= 2 % fuel invariant
+        if type == 1
+            data1(index,sameID) = meanData(:,sameID)*(1-epsilon);
+            data2(index,sameID) = meanData(:,sameID)*(1+epsilon);
         else
-            data1(index,i) = 0;
-            data2(index,i) = 1;
+            data1(index, sameGroup) = 0;
+            data2(index, sameGroup) = 0;
+            data2(index, sameID) = 1;
         end
         
         dx = [dx;data2(index(1:nchoice:end),i) - data1(index(1:nchoice:end),i)];
@@ -37,12 +44,13 @@ for i = 1:numel(spec.paramType)
     end
     
     for j=1:nchoice
-        if spec.paramType(i) == 3
-            data1(index(j:nchoice:end),i) = meanData(j:nchoice:end,i)*(1-epsilon);
-            data2(index(j:nchoice:end),i) = meanData(j:nchoice:end,i)*(1+epsilon);
+        if type == 3
+            data1(index(j:nchoice:end),sameID) = meanData(j:nchoice:end,sameID)*(1-epsilon);
+            data2(index(j:nchoice:end),sameID) = meanData(j:nchoice:end,sameID)*(1+epsilon);
         else
-            data1(index(j:nchoice:end),i) = 0;
-            data2(index(j:nchoice:end),i) = 1;
+            data1(index(j:nchoice:end), sameGroup) = 0;
+            data2(index(j:nchoice:end), sameGroup) = 0;
+            data2(index, sameID) = 1;
         end
         
         dx = [dx;data2(index(j:nchoice:end),i) - data1(index(j:nchoice:end),i)];
@@ -66,7 +74,7 @@ conID = repmat(1:2*m+nchoice*ncon, nchoice, 1);
 data(:,2) = conID(:);
 
 n.con = numel(unique(data(:,2)));
-n.draw = 10;
+n.draw = 1000;
 [dataR, ~] = ConstructDataGroup(data, n, spec);
 dataR.draw.uni = repmat(dataR.draw.uni(1,:,:), [n.con 1 1]);
 P = ProbitProb(thetaHat, dataR, dataR.n, dataR.spec);
@@ -77,6 +85,8 @@ P2 = P(m+1:2*m);
 
 mfx = (P2-P1)./dx;
 P = P(2*m+1:end);
+
+n.mfx = sum(spec.paramType > 0) + (n.maxChoice-1)*sum(spec.paramType > 2);
 
 
 epsilon = 1e-5;
@@ -112,7 +122,7 @@ for i = 1:numel(spec.paramType)
     end
 end
 mask(1) = [];
-mask = bsxfun(@plus, mask, (0:nchoice-1)'*n.mfx)';
+mask = bsxfun(@plus, mask, (choiceset-1)*n.mfx)';
 mask = mask(:);
 
 mfx_full = zeros(n.mfx*n.maxChoice, ncon);

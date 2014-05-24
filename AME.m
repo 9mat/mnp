@@ -2,7 +2,6 @@ function [ amfx, se_amfx, P, se_P ] = AME( dataMatrix, dataR, choicesetcode, the
 %AME Summary of this function goes here
 %   Detailed explanation goes here
 
-
 conID = sort(unique(dataMatrix(:,2)));
 mfx = zeros(n.mfx*n.maxChoice, n.con);
 P = zeros(n.maxChoice, n.con);
@@ -10,7 +9,6 @@ d_mfx_d_theta = zeros(n.mfx*n.maxChoice, numel(thetaHat), n.con);
 d_P_d_theta = zeros(n.maxChoice, numel(thetaHat), n.con);
 
 uniquecode = sort(unique(choicesetcode));
-nchoiceset = numel(unique(choicesetcode));
 for i = 1:numel(conID)
     fprintf('   Calculating mfx for person %4d\n',i);
     index = conID(i) == dataMatrix(:,2);

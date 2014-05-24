@@ -121,10 +121,11 @@ end
 %% Calculate means to be used for marginal effects
 meanData = ones(n.maxChoice, numel(spec.paramType));
 
+type = mod(spec.paramType, 10);
 for i = 1:size(meanData,2)
-    if spec.paramType(i) == 1 || spec.paramType(i) == 2
+    if type(i) == 1 || type(i) == 2
         meanData(:,i) = mean(dataMatrix(dataMatrix(:,4)==spec.base,i));
-    elseif spec.paramType(i) == 3 || spec.paramType(i) == 4
+    elseif type(i) == 3 || type(i) == 4
         for j = 1:n.maxChoice
             meanData(j,i) = mean(dataMatrix(dataMatrix(:,4) == j,i));
         end
@@ -134,7 +135,7 @@ for i = 1:size(meanData,2)
     meanData(:,4) = 1:n.maxChoice; % alternative
 end
 
-n.mfx = sum(spec.paramType > 0) + (n.maxChoice-1)*sum(spec.paramType > 2);
+n.mfx = sum(type > 0) + (n.maxChoice-1)*sum(type > 2);
 %%
 
 clear conID alternative belong index1;

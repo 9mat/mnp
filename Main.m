@@ -7,7 +7,7 @@ clear;
 % spec.dataName   = 'Data\data_fullsample.txt';
 % spec.dataName   = 'Data\data_sh_20stations.csv';
 % spec.dataName   = 'Data\logit_data_salvohuse.csv';
-spec.dataName   = 'Data\data_sh_full_23X.csv';
+spec.dataName   = 'Data\data_sh_full_cons.csv';
 %spec.dataName   = 'Data\data_spec1_full.txt';
 
 % Share data file name
@@ -24,10 +24,12 @@ n.conGroup  = 0;
 n.prodChar  = 0;
 
 % Number of consumer characteristic variables ( x_i )
-n.conChar   = 15;
+n.conChar   = 10;
 
 % for mfx
-spec.paramType = [0;0;0;0;0;3;0;2*ones(n.conChar-2,1);1];
+spec.paramType  = [0;0;0;0;0;3;0;2;2;2;2;2;2;2;2;1];
+spec.paramGroup = [0;0;0;0;0;1;0;2;3;3;3;4;4;5;6;7];
+spec.paramID    = [0;0;0;0;0;1;0;2;3;4;5;6;7;8;9;10];
 
 % Allow for unobserved product heterogeneity ( xi_jl ) 
 %   0 = no
@@ -100,8 +102,9 @@ display(opt);
 start_time = now;
 
 % Start value
-theta_0                         = -rand(n.theta, 1 );
+theta_0                         = zeros(n.theta, 1 );
 theta_0(1)                      = -10;
+theta_0(end) = 1; theta_0(end-1) = 0.5;
 
 %% Run estimation
 RunEstimation;
@@ -121,9 +124,10 @@ tic;[mfx, P, se_mfx, se_P] = marginalEffect(thetaHat, meanData, n, spec, MLE.cov
 tic;[ amfx, se_amfx, aP, se_aP ] = AME( dataMatrix, dataR, choicesetcode, thetaHat, n, spec, MLE.cov ); toc;
 %%
 mfxHeader = {};
-for i = 1:numel(spec.paramType)
-    if spec.paramType(i) == 0; continue; end;
-    if spec.paramType(i) < 3
+type = mod(spec.paramType, 10);
+for i = 1:numel(type)
+    if type(i) == 0; continue; end;
+    if type(i) < 3
         mfxHeader{end+1} = dataHeader{i};
     else
         for j=1:n.maxChoice
@@ -133,7 +137,6 @@ for i = 1:numel(spec.paramType)
 end
 
 mfxHeader = repmat(mfxHeader, 1, n.maxChoice);
-%%
 printmat([mfx, se_mfx, abs(mfx./se_mfx)], 'Marginal Effects at Means', strjoin(mfxHeader), 'MEM SE t');
 printmat([amfx, se_amfx, abs(amfx./se_amfx)], 'Average Marginal Effects', strjoin(mfxHeader), 'AME SE t');
 
