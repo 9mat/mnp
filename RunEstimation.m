@@ -107,10 +107,10 @@ nLoglike    = @( x, data, cens, freq ) obj( x );
 
 % Compute MLE covariance matrix by finite difference
 fprintf('\n Computing MLE Covariance Matrix...');
-MLE.covOpt  = statset( 'GradObj', opt.gradObj );
-MLE.cov     = mlecov( thetaHat, data, 'nloglf', nLoglike, ...
-                      'options', MLE.covOpt );
-
+% MLE.covOpt  = statset( 'GradObj', opt.gradObj );
+% MLE.cov     = mlecov( thetaHat, data, 'nloglf', nLoglike, ...
+%                       'options', MLE.covOpt );
+MLE.cov     = bhhh(thetaHat, dataR, spec);
 % Standard errors
 MLE.se      = sqrt( diag( MLE.cov ) );
 

@@ -6,7 +6,7 @@ clear;
 % spec.dataName   = 'Data/data_fullsample.txt';
 % spec.dataName   = 'Data/data_sh_20stations.csv';
 % spec.dataName   = 'Data/logit_data_salvohuse.csv';
-spec.dataName   = 'Data/data_sh_full_cons.csv';
+spec.dataName   = 'Data/data_sh_full_cons_double.csv';
 %spec.dataName   = 'Data/data_spec1_full.txt';
 
 % Share data file name
@@ -17,7 +17,7 @@ spec.shareName  = 'Data/data_share_full.txt';
 spec.logName    = ['Log/' name '.' datestr(now,'yyyymmdd.HHMM') '.log'];
 
 % Number of consumer groups ( R )
-n.conGroup  = 0;
+n.conGroup  = 8;
 
 % Number of product characteristic variables ( x_jl )
 n.prodChar  = 0;
@@ -26,9 +26,13 @@ n.prodChar  = 0;
 n.conChar   = 10;
 
 % for mfx
-spec.paramType  = [0;0;0;0;0;3;0;2;2;2;2;2;2;2;2;1];
-spec.paramGroup = [0;0;0;0;0;1;0;2;3;3;3;4;4;5;6;7];
-spec.paramID    = [0;0;0;0;0;1;0;2;3;4;5;6;7;8;9;10];
+% spec.paramType  = [0;0;0;0;0;3;0;2;2;2;2;2;2;2;2;1];
+% spec.paramGroup = [0;0;0;0;0;1;0;2;3;3;3;4;4;5;6;7];
+% spec.paramID    = [0;0;0;0;0;1;0;2;3;4;5;6;7;8;9;10];
+
+spec.paramType  = [0;0;0;0;0;3;2;2;2;2;2;2;2;2;2;2;2;2;2;2;2;2;1;0];
+spec.paramGroup = [1;0;0;0;0;1;2;3;3;3;4;4;5;6;2;3;3;3;4;4;5;6;7;0];
+spec.paramID    = [2;0;0;0;0;1;2;3;4;5;6;7;8;9;2;3;4;5;6;7;8;9;10;0];
 
 % Allow for unobserved product heterogeneity ( xi_jl ) 
 %   0 = no
@@ -50,7 +54,8 @@ spec.base       = 3;
 spec.scale      = 1 + (spec.base == 1); % not ready to change to other scale yet
 
 % Number of random draws 
-n.draw          = 100;
+n.draw          = 1000;
+n.mfxdraw       = n.draw;
 
 % Random draw type
 %   1 = use pseudo-random draws
