@@ -6,7 +6,7 @@ clear;
 % spec.dataName   = 'Data/data_fullsample.txt';
 % spec.dataName   = 'Data/data_sh_20stations.csv';
 % spec.dataName   = 'Data/logit_data_salvohuse.csv';
-spec.dataName   = 'Data/data_sh_full_cons_double.csv';
+spec.dataName   = 'Data/data_sh_full_cons.csv';
 %spec.dataName   = 'Data/data_spec1_full.txt';
 
 % Share data file name
@@ -26,13 +26,16 @@ n.prodChar  = 0;
 n.conChar   = 10;
 
 % for mfx
-% spec.paramType  = [0;0;0;0;0;3;0;2;2;2;2;2;2;2;2;1];
-% spec.paramGroup = [0;0;0;0;0;1;0;2;3;3;3;4;4;5;6;7];
-% spec.paramID    = [0;0;0;0;0;1;0;2;3;4;5;6;7;8;9;10];
 
-spec.paramType  = [0;0;0;0;0;3;2;2;2;2;2;2;2;2;2;2;2;2;2;2;2;2;1;0];
-spec.paramGroup = [1;0;0;0;0;1;2;3;3;3;4;4;5;6;2;3;3;3;4;4;5;6;7;0];
-spec.paramID    = [2;0;0;0;0;1;2;3;4;5;6;7;8;9;2;3;4;5;6;7;8;9;10;0];
+% data_sh_full_cons.csv
+spec.paramType  = [0;0;0;0;0;3;0;2;2;2;2;2;2;2;2;1];
+spec.paramGroup = [0;0;0;0;0;1;0;2;3;3;3;4;4;5;6;7];
+spec.paramID    = [0;0;0;0;0;1;0;2;3;4;5;6;7;8;9;10];
+
+% data_sh_full_cons_double.csv
+% spec.paramType  = [0;0;0;0;0;3;2;2;2;2;2;2;2;2;2;2;2;2;2;2;2;2;1;0];
+% spec.paramGroup = [1;0;0;0;0;1;2;3;3;3;4;4;5;6;2;3;3;3;4;4;5;6;7;0];
+% spec.paramID    = [2;0;0;0;0;1;2;3;4;5;6;7;8;9;2;3;4;5;6;7;8;9;10;0];
 
 % Allow for unobserved product heterogeneity ( xi_jl ) 
 %   0 = no
@@ -74,7 +77,7 @@ rand( 'seed', 12345 );
 %   1 = use KNITRO 
 %   2 = use MATLAB fminsearch
 %   3 = use MATLAB fmincon
-spec.solver     = 1;
+spec.solver     = 4;
 
 % Common optimization options
 opt.maxIter     = 50000;

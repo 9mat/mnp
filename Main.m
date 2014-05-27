@@ -70,7 +70,7 @@ rand( 'seed', 12345 );
 %   1 = use KNITRO 
 %   2 = use MATLAB fminsearch
 %   3 = use MATLAB fmincon
-spec.solver     = 1;
+spec.solver     = 4;
 
 % Common optimization options
 opt.maxIter     = 50000;

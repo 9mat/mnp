@@ -98,7 +98,9 @@ ub          = zeros( n.con, n.draw, n.maxChoice - 1 );
 for j = 1 : n.maxChoice - 1        
     aj = repmat(permute(V(j, :), [2 3 1]), [1 n.draw]);
     if j > 1
-        w(:,:,j-1) = norminv(ubj .* dataR.draw.uni(:,:,j-1));
+        wj = norminv(ubj .* dataR.draw.uni(:,:,j-1));
+        wj(wj < -50) = aj(wj < -50);
+        w(:,:,j-1) = wj;
         for h = 1:j-1
             aj = aj + bsxfun( @times, w(:,:,h), squeeze(S_i(j,h,:)));
         end
@@ -130,8 +132,11 @@ if nargout > 1
     normpdf_w( normpdf_w == 0 ) = eps;
     
     u_normpdf_a_w   = dataR.draw.uni .* normpdf_a(:,:,1:end-1) ./ normpdf_w; 
-    normpdf_a_ub    = reshape( normpdf_a ./ ub, ...
-                               [ 1 n.con n.draw ( n.maxChoice - 1 ) ] );
+    normpdf_a_ub    = normpdf_a ./ ub;
+    normpdf_a_ub(a < -30) = -a(a < -30);
+    normpdf_a_ub    = reshape(normpdf_a_ub, [1 n.con n.draw (n.maxChoice-1)]);
+%     normpdf_a_ub    = reshape( normpdf_a ./ ub, ...
+%                                [ 1 n.con n.draw ( n.maxChoice - 1 ) ] );
     clear normpdf_w ub;      
     
     % Derivatives of V wrt to beta
@@ -222,7 +227,11 @@ if nargout > 1
         end
         
     end 
-    clear d_w_beta d_w_s_i d_V_beta S_i d_a a w;                                        %%     
+    clear d_w_beta d_w_s_i d_V_beta S_i d_a a w;
+    
+    % d_a_beta can be NaN if S(l,l) = 0 and da = 0
+    % in that case, da dominates and d_a_beta = 0
+    d_a_beta(isnan(d_a_beta)) = 0;
     
     % Derivatives of a wrt s
     d_a_s       = zeros( n.s + 1, n.con, n.draw, n.maxChoice - 1 );
@@ -240,17 +249,28 @@ if nargout > 1
     clear temp1 temp2 d_a_s_i;
     
     % Derivatives of L wrt beta
-    d_L_beta    = sum( bsxfun( @times, normpdf_a_ub, d_a_beta ), 4 );
-    d_L_beta    = ...
-        mean( bsxfun( @times, d_L_beta, ...
-                      reshape( probChosen, [ 1 n.con n.draw ] ) ), 3 );  
+    % d_L_beta = NaN when normpdf_a_ub = 0 and d_a_beta = Inf
+    % here normpdf_a_ub dominates, thus d_L_beta = 0
+    d_L_beta    = bsxfun( @times, normpdf_a_ub, d_a_beta );
+    d_L_beta(isnan(d_L_beta)) = 0;
+    d_L_beta    = sum( d_L_beta, 4 );
+    
+    d_L_beta    = bsxfun( @times, d_L_beta, ...
+                        reshape( probChosen, [ 1 n.con n.draw ]));
+    d_L_beta(isnan(d_L_beta)) = 0;
+    d_L_beta    = mean( d_L_beta, 3 );    
+    
     clear d_a_beta;
                   
     % Derivatives of L wrt s_i
-    d_L_s_i     = sum( bsxfun( @times, normpdf_a_ub, d_a_s ), 4 );
-    d_L_s_i     = ...
-        mean( bsxfun( @times, d_L_s_i, ...
-                      reshape( probChosen, [ 1 n.con n.draw ] ) ), 3 ); 
+    d_L_s_i     = bsxfun( @times, normpdf_a_ub, d_a_s );
+    d_L_s_i(isnan(d_L_s_i)) = 0;
+    d_L_s_i     = sum( d_L_s_i, 4 );
+    
+    d_L_s_i     = bsxfun( @times, d_L_s_i, ...
+                      reshape( probChosen, [ 1 n.con n.draw ]));
+    d_L_s_i(isnan(d_L_s_i)) = 0;
+    d_L_s_i     = mean( d_L_s_i, 3 ); 
     d_L_s_i( d_L_s_i == Inf )   = 1e+10;
     clear normpdf_a_ub d_a_s;
 

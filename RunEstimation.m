@@ -89,10 +89,8 @@ elseif spec.solver == 4
     options.ub = ub;
     
     options.ipopt.hessian_approximation = 'limited-memory';
-    options.ipopt.derivative_test = 'first-order';
-    options.ipopt.max_iter = 500;
-%     options.ipopt.derivative_test_perturbation = 1e-5;
-    
+    options.ipopt.max_iter = opt.maxIter;
+    options.print_level = 1;
     [ thetaHat, info ] = ipopt(theta_0, funcs, options);
     MLE.value = obj(thetaHat);
 end

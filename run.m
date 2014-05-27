@@ -2,6 +2,10 @@ function run(settingfile)
 %RUN Summary of this function goes here
 %   Detailed explanation goes here
 
+if spec.solver == 4 && exist('ipopt','file') == 0
+    addpath('/home/svu/a0034101/ipopt');
+end
+
 load(settingfile);
 ConstructData;
 
