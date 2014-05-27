@@ -64,10 +64,15 @@ for i = 1:numel(type)
 end
 
 mfxHeader = repmat(mfxHeader, 1, n.maxChoice);
-printmat([mfx, se_mfx, abs(mfx./se_mfx)], 'Marginal Effects at Means', strjoin(mfxHeader), 'MEM SE t');
+joinHeader = [];
+for i=1:numel(mfxHeader)
+    joinHeader = [joinHeader mfxHeader{i} ' '];
+end
+
+printmat([mfx, se_mfx, abs(mfx./se_mfx)], 'Marginal Effects at Means', joinHeader, 'MEM SE t');
 printmat([P, se_P], 'Choice Probability at Means', num2str(1:n.maxChoice), 'Prob se');
 
-printmat([amfx, se_amfx, abs(amfx./se_amfx)], 'Average Marginal Effects', strjoin(mfxHeader), 'AME SE t');
+printmat([amfx, se_amfx, abs(amfx./se_amfx)], 'Average Marginal Effects', joinHeader, 'AME SE t');
 printmat([aP, se_aP], 'Average Choice Probability', num2str(1:n.maxChoice), 'Prob se');
 
 save(['Results/' name '.mat']);

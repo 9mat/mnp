@@ -6,7 +6,7 @@ clear;
 % spec.dataName   = 'Data/data_fullsample.txt';
 % spec.dataName   = 'Data/data_sh_20stations.csv';
 % spec.dataName   = 'Data/logit_data_salvohuse.csv';
-spec.dataName   = 'Data/data_sh_full_cons.csv';
+spec.dataName   = 'Data/data_new.csv';
 %spec.dataName   = 'Data/data_spec1_full.txt';
 
 % Share data file name
@@ -17,25 +17,45 @@ spec.shareName  = 'Data/data_share_full.txt';
 spec.logName    = ['Log/' name '.' datestr(now,'yyyymmdd.HHMM') '.log'];
 
 % Number of consumer groups ( R )
-n.conGroup  = 8;
+n.conGroup  = 0;
 
 % Number of product characteristic variables ( x_jl )
 n.prodChar  = 0;
 
 % Number of consumer characteristic variables ( x_i )
-n.conChar   = 10;
+n.conChar   = 14;
 
 % for mfx
 
-% data_sh_full_cons.csv
-spec.paramType  = [0;0;0;0;0;3;0;2;2;2;2;2;2;2;2;1];
-spec.paramGroup = [0;0;0;0;0;1;0;2;3;3;3;4;4;5;6;7];
-spec.paramID    = [0;0;0;0;0;1;0;2;3;4;5;6;7;8;9;10];
+% data_sh_full_cons.csv - 10X
+% spec.paramType  = [0;0;0;0;0;3;0;2;2;2;2;2;2;2;2;1];
+% spec.paramGroup = [0;0;0;0;0;1;0;2;3;3;3;4;4;5;6;7];
+% spec.paramID    = [0;0;0;0;0;1;0;2;3;4;5;6;7;8;9;10];
+
+% data_sh_full_23X.csv
+% spec.paramType  = [0;0;0;0;0;3;0;2;2;2;2;2;2;2;2;1;2;2;2;2;2;2;2;2;2;2;2;2];
+% spec.paramGroup = [0;0;0;0;0;1;0;2;3;3;3;4;4;5;6;7;8;8;8;8;8;9;9;9;9;10;10;10];
+% spec.paramID    = [0;0;0;0;0;1;0;2;3;4;5;6;7;8;9;10;11;12;13;14;15;16;17;18;19;20;21;22];
+% 
+% nX = n.conGroup + n.conChar;
+% spec.paramType  = spec.paramType(1:nX+6);
+% spec.paramGroup = spec.paramGroup(1:nX+6);
+% spec.paramID    = spec.paramID(1:nX+6);
+
+% data_sh_full_23X_dup.csv - 8 Groups, 22X
+% spec.paramType  = [0;0;0;0;0;3;2;2;2;2;2;2;2;2;2;2;2;2;2;2;2;2;1;2;2;2;2;2;2;2;2;2;2;2;2;0];
+% spec.paramGroup = [0;0;0;0;0;1;2;3;3;3;4;4;5;6;2;3;3;3;4;4;5;6;7;8;8;8;8;8;9;9;9;9;10;10;10;0];
+% spec.paramID    = [0;0;0;0;0;1;2;3;4;5;6;7;8;9;2;3;4;5;6;7;8;9;10;11;12;13;14;15;16;17;18;19;20;21;22;0];
 
 % data_sh_full_cons_double.csv
 % spec.paramType  = [0;0;0;0;0;3;2;2;2;2;2;2;2;2;2;2;2;2;2;2;2;2;1;0];
 % spec.paramGroup = [1;0;0;0;0;1;2;3;3;3;4;4;5;6;2;3;3;3;4;4;5;6;7;0];
 % spec.paramID    = [2;0;0;0;0;1;2;3;4;5;6;7;8;9;2;3;4;5;6;7;8;9;10;0];
+
+% data_new.csv - 14X
+spec.paramType = [0;0;0;0;0;3;2;2;2;2;2;2;2;2;1;2;2;2;2;0];
+spec.paramGroup = [0;0;0;0;0;1;2;3;3;3;4;4;5;6;7;8;8;8;8;0];
+spec.paramID = [0;0;0;0;0;1;2;3;4;5;6;7;8;9;10;11;12;13;14;0];
 
 % Allow for unobserved product heterogeneity ( xi_jl ) 
 %   0 = no
