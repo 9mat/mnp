@@ -142,8 +142,9 @@ elseif spec.solver == 4
     options.ub = ub;
     
     options.ipopt.hessian_approximation = 'limited-memory';
-    options.ipopt.derivative_test = 'first-order';
+%    options.ipopt.derivative_test = 'first-order';
     options.ipopt.max_iter = opt.maxIter;
+    options.ipopt.print_level = 1;
 %     options.ipopt.derivative_test_perturbation = 1e-5;
     
     [ thetaHat, info ] = ipopt(theta_0, funcs, options);
@@ -163,7 +164,42 @@ fprintf('\n Computing MLE Covariance Matrix...');
 MLE.covOpt  = statset( 'GradObj', opt.gradObj );
 %MLE.cov     = mlecov( thetaHat, data, 'nloglf', nLoglike, ...
 %                      'options', MLE.covOpt );
-MLE.cov = bhhh(thetaHat, dataR);
+
+% BHHH
+
+d_nLogLike = [];
+for k = 1:numel(dataR)
+    [ probChosen, d_probChosen ]  = ProbitProb( thetaHat(dataR{k}.pick), dataR{k});
+    
+    d = zeros(n.theta, dataR{k}.n.con);
+    d(dataR{k}.pick, :) = d_probChosen;
+    
+    d_nLogLike  = [d_nLogLike, bsxfun( @rdivide, d, probChosen')];
+end
+
+if spec.constraint == 2
+    MLE.cov = inv(d_nLogLike*d_nLogLike');
+else
+    deltaid         = sort(paramsid.delta(identifiable.delta));
+    betaid          = 1:n.theta;
+    betaid(deltaid) = [];
+    
+    [~, ~, ~, d_s]  = ShareConstraints( thetaHat, dataS, identifiable, n, shareHat);
+
+    d_s_delta       = d_s(deltaid,:);
+    d_s_beta        = d_s(betaid,:);
+    d_f_delta       = d_nLogLike(deltaid,:);
+    d_f_beta        = d_nLogLike(betaid,:);
+    
+    d_delta_beta    = -d_s_beta/d_s_delta;
+    d_f             = d_f_beta + d_delta_beta*d_f_delta;
+    
+    d_theta_beta    = zeros(n.theta - n.delta, n.theta);
+    d_theta_beta(:, deltaid) = d_delta_beta;
+    d_theta_beta(:, betaid)  = eye(n.theta - n.delta);
+    
+    MLE.cov = d_theta_beta'/(d_f*d_f')*d_theta_beta;
+end
 
 % Standard errors
 MLE.se      = sqrt( diag( MLE.cov ) );

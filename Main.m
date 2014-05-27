@@ -8,8 +8,8 @@ clear;
 % spec.dataName   = 'Data\data_sh_20stations.csv';
 % spec.dataName   = 'Data\logit_data_salvohuse.csv';
 %spec.dataName   = 'Data\data_sh_full_cleaned_keepchoice1.csv';
-spec.dataName   = 'Data\data_sh_full_cleaned.csv';
-spec.include_emidgrade = false;
+spec.dataName   = 'Data\data_new_cleaned_s100934s543942x2.csv';
+spec.include_emidgrade = true;
 spec.keep_treattype = -1;
 
 % Log file name
@@ -26,7 +26,7 @@ n.conGroup  = 0;
 n.prodChar  = 0;
 
 % Number of consumer characteristic variables ( x_i )
-n.conChar   = 0;
+n.conChar   = 8;
 
 % for mfx
 %   paramType = 0 --> no marginal effect
@@ -48,15 +48,15 @@ spec.unobs  = 0;
 %   covariance remains positive definite during optimization.
 %   1 = yes
 %   2 = no
-spec.constraint = 2;
+spec.constraint = 1;
 spec.boundSize  = 1e-6;
 
 % Base alternative
-spec.base       = 1;
+spec.base       = 3;
 spec.scale      = 1 + (spec.base == 1); % not ready to change to other scale yet
 
 % Number of random draws 
-n.draw          = 100;
+n.draw          = 10;
 
 % Random draw type
 %   1 = use pseudo-random draws
@@ -75,7 +75,7 @@ rng('default');
 %   1 = use KNITRO 
 %   2 = use MATLAB fminsearch
 %   3 = use MATLAB fmincon
-spec.solver     = 1;
+spec.solver     = 4;
 
 % Common optimization options
 opt.maxIter     = 20000;
@@ -112,7 +112,7 @@ ConstructData;
 % Start value
 % load theta_00.mat;
 % theta_0 = thetaHat;
-theta_0                         = zeros(n.theta, 1 );
+theta_0                         = normrnd(0,1,n.theta, 1 );
 theta_0(1)                      = -10;
 theta_0(end) = 1;
 theta_0(end-1) = 0.5;

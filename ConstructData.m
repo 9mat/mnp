@@ -16,10 +16,10 @@ dataMatrix(dataMatrix(:,3) < 2, :) = [];
 
 % for the 2160 data, station 141, 172 noone chooses the first alternative,
 % which is the base alternative, thus here we simply throw them away
-dataMatrix(dataMatrix(:,1) == 141, :) = [];
-dataMatrix(dataMatrix(:,1) == 172, :) = [];
-shareMatrix(shareMatrix(:,1) == 141, :) = [];
-shareMatrix(shareMatrix(:,1) == 172, :) = [];
+% dataMatrix(dataMatrix(:,1) == 141, :) = [];
+% dataMatrix(dataMatrix(:,1) == 172, :) = [];
+% shareMatrix(shareMatrix(:,1) == 141, :) = [];
+% shareMatrix(shareMatrix(:,1) == 172, :) = [];
 
 % ignore midgrade ethanol
 if ~spec.include_emidgrade
@@ -68,7 +68,7 @@ allmarkets = sort(unique(marketID));
 n.market = numel(allmarkets);
 choicesetsize = zeros(size(allmarkets));
 
-dataS = cell(n.choiceset, n.market);
+dataS = cell(n.maxChoice, n.market);
 dataR = cell(n.choiceset, 1);
 data = cell(n.choiceset, 1);
 
@@ -151,6 +151,7 @@ paramsid.beta_1 = paramsid.beta_1 + 1 + n.conGroup;
 paramsid.beta_2 = paramsid.beta_2 + 1 + n.conGroup + n.beta_1;
 paramsid.delta  = paramsid.delta  + n.beta;
 paramsid.S      = paramsid.S      + n.beta + n.delta;
+
 
 % Index the estimable parameters in a running order
 
