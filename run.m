@@ -16,7 +16,11 @@ theta_0(end-1)  = 0.5;
 %% Run Estimation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Prepare the log file and display the specifications
-diary( spec.logName );
+% Log file name
+[~,name,~] = fileparts(spec.logName);
+nowstr = datestr(now,'mmdd.HHMM');
+spec.logName    = ['Log/' name '.' nowstr '.log'];
+diary(spec.logName);
 diary on;
 
 display(n);
@@ -41,9 +45,8 @@ PrintResults;
 fprintf(['\n\n\n Wall-clock running time = ' datestr(now - start_time,13) '\n']);
 
 %% Save the results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clearvars -except dataMatrix dataR dataHeader choicesetcode thetaHat MLE spec n opt meanData paramType;
-[~,name,~] = fileparts(spec.logName);
-save(['Results/' name '.mat']);
+clearvars -except dataMatrix dataR dataHeader choicesetcode thetaHat MLE spec n opt meanData paramType name nowstr;
+save(['Results/' name '.' nowstr '.mat']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% kk
@@ -75,7 +78,7 @@ printmat([P, se_P], 'Choice Probability at Means', num2str(1:n.maxChoice), 'Prob
 printmat([amfx, se_amfx, abs(amfx./se_amfx)], 'Average Marginal Effects', joinHeader, 'AME SE t');
 printmat([aP, se_aP], 'Average Choice Probability', num2str(1:n.maxChoice), 'Prob se');
 
-save(['Results/' name '.mat']);
+save(['Results/' name '.' nowstr '.mat']);
 diary off;
 
 end
