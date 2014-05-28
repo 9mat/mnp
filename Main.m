@@ -26,15 +26,12 @@ n.conGroup  = 0;
 n.prodChar  = 0;
 
 % Number of consumer characteristic variables ( x_i )
-n.conChar   = 8;
+n.conChar   = 9;
 
 % for mfx
-%   paramType = 0 --> no marginal effect
-%   paramType = 1 --> continuous and product independent
-%   paramType = 2 --> binary and product independent
-%   paramType = 3 --> continuous and product dependent
-%   paramType = 4 --> binary and product dependent
-spec.paramType = [0;0;0;0;0;3;2;22;22;22;32;32;2;2];
+spec.paramType  = [0;0;0;0;0;3;2;2;2;2;2;2;2;2];
+spec.paramGroup = [0;0;0;0;0;1;2;3;3;3;4;4;5;6];
+spec.paramID    = [0;0;0;0;0;1;2;3;4;5;6;7;8;9];
 
 % Allow for unobserved product heterogeneity ( xi_jl ) 
 %   0 = no
@@ -48,7 +45,7 @@ spec.unobs  = 0;
 %   covariance remains positive definite during optimization.
 %   1 = yes
 %   2 = no
-spec.constraint = 1;
+spec.constraint = 2;
 spec.boundSize  = 1e-6;
 
 % Base alternative
@@ -75,7 +72,7 @@ rng('default');
 %   1 = use KNITRO 
 %   2 = use MATLAB fminsearch
 %   3 = use MATLAB fmincon
-spec.solver     = 4;
+spec.solver     = 1;
 
 % Common optimization options
 opt.maxIter     = 20000;
@@ -124,20 +121,21 @@ RunEstimation;
 
 PrintResults;
 
-fprintf('\n\n   Total time      = %.4f seconds\n', toc(start_time));
-fprintf(['   Wall-clock time = ' datestr(now - wall_clock,13) '\n']);
+% fprintf(['\n\n\n Wall-clock running time = ' datestr(now - start_time,13) '\n']);
 
 %% Save the results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%clearvars -except dataHeader dataMatrix dataS dataR choicesetcode thetaHat MLE spec n opt meanData;
-[~,name,~] = fileparts(spec.logName);
-%tic;[mfx, P, se_mfx, se_P] = marginalEffect(thetaHat, meanData, n, spec, MLE.cov);toc;
+% clearvars -except dataMatrix dataR dataHeader choicesetcode thetaHat MLE spec n opt meanData paramType;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% kk
+% tic;[mfx, P, se_mfx, se_P] = marginalEffect(thetaHat, meanData, n, spec, MLE.cov);toc;
 tic;[ amfx, se_amfx, aP, se_aP ] = AME( dataMatrix, dataR, choicesetcode, thetaHat, n, spec, MLE.cov ); toc;
 %%
 mfxHeader = {};
-for i = 1:numel(spec.paramType)
-    type = mod(spec.paramType(i), 10);
-    if type == 0; continue; end;
-    if type < 3
+type = mod(spec.paramType, 10);
+for i = 1:numel(type)
+    if type(i) == 0; continue; end;
+    if type(i) < 3
         mfxHeader{end+1} = dataHeader{i};
     else
         for j=1:n.maxChoice
