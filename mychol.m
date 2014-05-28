@@ -26,7 +26,7 @@ if q == 1
     assert(mean(abs(A(1,:))) + mean(abs(A(:,1))) < 1e-5);
     L = mychol(A(2:end, 2:end));
     l = size(L,1);
-    L = [zeros(l,1), [zeros(1,l-1); L] ];
+    L = [zeros(l+1,1), [zeros(1,l); L] ];
     return;
 end
 

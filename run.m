@@ -10,7 +10,7 @@ ConstructData;
 theta_0         = zeros(n.theta, 1);
 theta_0(1)      = -10;
 theta_0(end)    = 1; 
-theta_0(end-1)  = 0.5;
+theta_0(end-4:end)  = [0, 0, 1, 0, 1];
 
 
 %% Run Estimation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -42,11 +42,11 @@ RunEstimation;
 
 PrintResults;
 
-fprintf(['\n\n\n Wall-clock running time = ' datestr(now - start_time,13) '\n']);
 
 %% Save the results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clearvars -except dataMatrix dataR dataHeader choicesetcode thetaHat MLE spec n opt meanData paramType name nowstr;
+clearvars -except dataMatrix dataR dataHeader choicesetcode thetaHat MLE spec n opt meanData paramType name nowstr start_time;
 save(['Results/' name '.' nowstr '.mat']);
+fprintf(['\n\n\n Wall-clock running time = ' datestr(now - start_time,13) '\n']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% kk
