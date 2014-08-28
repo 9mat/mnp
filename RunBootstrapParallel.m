@@ -11,17 +11,17 @@ end
 % spec.dataName   = 'Data\data_sh_20stations.csv';
 % spec.dataName   = 'Data\logit_data_salvohuse.csv';
 %spec.dataName   = 'Data\data_sh_full_cleaned_keepchoice1.csv';
-spec.dataName   = 'Data\data_new_spec4_2.csv';
+spec.dataName   = 'Data/data_new_spec4_2.csv';
 spec.include_emidgrade = true;
 spec.keep_treattype = -1;
 
 % Log file name
 [~,name,ext] = fileparts(spec.dataName);
 name2 = [name '.' datestr(now,'yyyymmdd.HHMM')];
-spec.logName    = ['Log\' name2 '.log'];
+spec.logName    = ['Log/' name2 '.log'];
 
 % Share data file name
-spec.shareName  = ['Data\share_' name ext];
+spec.shareName  = ['Data/share_' name ext];
 
 % Number of consumer groups ( R )
 n.conGroup  = 0;
