@@ -1,4 +1,4 @@
-function [ thetaHats ] = bootstrap( n, spec, opt, bstrind )
+function [ thetaHats ] = bootstrapparallel( n, spec, opt, bstrind )
 %BOOTSTRAP Summary of this function goes here
 %   Detailed explanation goes here
 

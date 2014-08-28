@@ -1,5 +1,8 @@
 function RunBootstrapParallel(bstrind)
 
+if ischar(bstrind)
+    bstrind = str2num(bstrind);
+end
 
 %% Model Specification %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
