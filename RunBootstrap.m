@@ -56,7 +56,7 @@ spec.unobs  = 0;
 %   covariance remains positive definite during optimization.
 %   1 = yes
 %   2 = no
-spec.constraint = 2;
+spec.constraint = 1;
 spec.boundSize  = 1e-6;
 
 % Base alternative
@@ -110,70 +110,4 @@ display(opt);
 start_time = tic;
 wall_clock = now;
 
-%% Import Data and Construct Data Matrices %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Main Data
-tempData        = importdata( spec.dataName );
-dataMatrix      = tempData.data;
-dataHeader      = tempData.colheaders;
-clear tempData
-
-% Share data
-tempData        = importdata( spec.shareName );
-shareMatrix     = tempData.data;
-clear tempData;
-
-[dataR, dataS, shareHat, identifiable, paramsid, n] = ConstructData(dataMatrix, shareMatrix, n, spec);
-
-%% Run Estimation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% diary( spec.logName );
-
-% Start value
-% load theta_00.mat;
-% theta_0 = thetaHat;
-theta_0                         = zeros(n.theta, 1 );
-theta_0(1)                      = -10;
-theta_0(end) = 1;
-theta_0(end-4:end) = [0;0;1;0;1];
-
-%% Run estimation
-thetaHat = RunEstimation(dataR, dataS, theta_0, n, spec, opt, shareHat, identifiable, paramsid);
-MLE = bhhh(thetaHat, dataR, n, spec);
-
-%% Print Results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-PrintResults;
-
-% fprintf(['\n\n\n Wall-clock running time = ' datestr(now - start_time,13) '\n']);
-
-%% Save the results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% clearvars -except dataMatrix dataR dataHeader choicesetcode thetaHat MLE spec n opt meanData paramType;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% kk
-% tic;[mfx, P, se_mfx, se_P] = marginalEffect(thetaHat, meanData, n, spec, MLE.cov);toc;
-tic;[ amfx, se_amfx, aP, se_aP ] = AME( dataMatrix, dataR, choicesetcode, thetaHat, n, spec, MLE.cov ); toc;
-%%
-mfxHeader = {};
-type = mod(spec.paramType, 10);
-for i = 1:numel(type)
-    if type(i) == 0; continue; end;
-    if type(i) < 3
-        mfxHeader{end+1} = dataHeader{i};
-    else
-        for j=1:n.maxChoice
-            mfxHeader{end+1} = [dataHeader{i} num2str(j)];
-        end
-    end
-end
-
-mfxHeader = repmat(mfxHeader, 1, n.maxChoice);
-%%
-%printmat([mfx, se_mfx, abs(mfx./se_mfx)], 'Marginal Effects at Means', strjoin(mfxHeader), 'MEM SE t');
-printmat([amfx, se_amfx, abs(amfx./se_amfx)], 'Average Marginal Effects', strjoin(mfxHeader), 'AME SE t');
- save(['Results/' name2 '.mat']);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-diary off;
+thetaHats = bootstrap( n, spec, opt, 2 );

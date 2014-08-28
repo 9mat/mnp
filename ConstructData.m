@@ -1,35 +1,29 @@
 %% Import Data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [dataR, dataS, shareHat, identifiable, paramsid, n] = ConstructData(dataMatrix, shareMatrix, nn, spec)
 
-% Main Data
-tempData        = importdata( spec.dataName );
-dataMatrix      = tempData.data;
-dataHeader      = tempData.colheaders;
-clear tempData
-
-% Share data
-tempData        = importdata( spec.shareName );
-shareMatrix     = tempData.data;
-clear tempData;
+n =nn;
 
 % remove data with only 1 alternative
 dataMatrix(dataMatrix(:,3) < 2, :) = [];
 
 % for the 2160 data, station 141, 172 noone chooses the first alternative,
 % which is the base alternative, thus here we simply throw them away
-% dataMatrix(dataMatrix(:,1) == 141, :) = [];
-% dataMatrix(dataMatrix(:,1) == 172, :) = [];
-% shareMatrix(shareMatrix(:,1) == 141, :) = [];
-% shareMatrix(shareMatrix(:,1) == 172, :) = [];
+dataMatrix(dataMatrix(:,1) == 146, :) = [];
+dataMatrix(dataMatrix(:,1) == 141, :) = [];
+dataMatrix(dataMatrix(:,1) == 172, :) = [];
+shareMatrix(shareMatrix(:,1) == 146, :) = [];
+shareMatrix(shareMatrix(:,1) == 141, :) = [];
+shareMatrix(shareMatrix(:,1) == 172, :) = [];
 
 % ignore midgrade ethanol
 if ~spec.include_emidgrade
     dataMatrix(dataMatrix(:,4)==4 | dataMatrix(:,5)==4,:) = [];
 end
 
-if spec.keep_treattype >=0
-    tt = dataMatrix(:,end);
-    dataMatrix(tt ~= spec.keep_treattype,:) = [];
-end
+% if spec.keep_treattype >=0
+%     tt = dataMatrix(:,end);
+%     dataMatrix(tt ~= spec.keep_treattype,:) = [];
+% end
 
 shareHat = shareMatrix(:,2:end);
 shareHat(:,spec.base) = NaN;
@@ -191,7 +185,7 @@ for k = 1:n.choiceset
         k_identifiable.delta = false(size(identifiable.delta));
         k_identifiable.delta(:,m) = identifiable.delta(:,m);
         
-        pick = sort([ (1:1+n.conGroup); ...
+        pick = sort([ (1:1+n.conGroup)'; ...
             paramsid.beta_1(k_identifiable.beta_1); ...
             paramsid.beta_2(k_identifiable.beta_2); ...
             paramsid.delta(k_identifiable.delta); ...
